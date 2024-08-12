@@ -1,4 +1,5 @@
 /BUILD_*
 /debug_*
 /release_*
+/.gdb*
 

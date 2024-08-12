@@ -1,0 +1,17 @@
+a// cOmment
+/**/
+//
+/*block unterminated*//*//*g*//*
+*/
+
+package ZPar.se;
+
+void foo();
+void foo(string);
+int foo(int bar);
+int foo(int a, string b);
+int foo(int, string);
+int foo(int, string) {
+}
+
+int f;
