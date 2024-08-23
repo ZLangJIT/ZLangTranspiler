@@ -1,8 +1,14 @@
-a// cOmment
+a
+// a// foo bar
+// cOmment
 /**/
 //
-/*block unterminated*//*//*g*//*
-*/
+/*block terminated*//*//*g*//*
+// /*
+*/// comment
+/*block terminated*///*//*g*//*
+// /*
+*/// comment
 
 package ZPar.se;
 

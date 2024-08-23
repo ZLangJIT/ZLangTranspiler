@@ -5,39 +5,108 @@
 
 struct ast_zlang {
     
-    std::unique_ptr<TokenList> token_list;
-    std::unique_ptr<TokenPassManager> pm;
-    
     inline ast_zlang() {}
     
-    inline void reset() {
-        token_list.reset(new TokenList());
-        pm.reset(new TokenPassManager());
-        auto context = pushParseContext(*pm);
-        pm->after(
-            new Or({
-                new Echo("0"),
-                new Or({new Echo("1"), new Echo("2")}),
-                new Or({new Echo("3"), new Echo("4")}),
-                new Echo("5"),
-                new Echo("6"),
-                new Or({new Echo("7"), new Echo("8")})
-                //new Or(new String("a// pineapple"), new Char('b'))
-                //,
-                // new Char('a'),
-                // new Char('c'),
-                // new String("//"),
-                // new Char('d'),
-                // new Range('a','z','A','Z', ' ')
-            }, [](MatchData&){ puts("RULE MATCHES"); })
-        );
-        popParseContext(*pm, context);
+    struct Tokens {
+        static inline Tokens & get() {
+            static Tokens id;
+            return id;
+        }
+
+        const std::unique_ptr<uint8_t> comment { new uint8_t };
+        const std::unique_ptr<uint8_t> diagnostic { new uint8_t };
+
+        struct CommentToken : SpanToken {
+            inline CommentToken() {
+                token_id = Tokens::get().comment.get();
+            }
+            
+            inline void print() override {
+                print_file_marker();
+                auto str = extract_string();
+                printf(": CommentToken \"%s\"\n", str.c_str());
+            }
+        };
+
+        struct DiagnosticToken : SpanToken {
+            const char * msg;
+            
+            inline DiagnosticToken(const char * msg) : msg(msg) {
+                token_id = Tokens::get().diagnostic.get();
+            }
+            
+            inline void print() override {
+                print_file_marker();
+                auto str = extract_string();
+                printf(": DiagnosticToken \"%s\" [ msg = \"%s\" ]\n", str.c_str(), msg);
+            }
+        };
+    } ids;
+    
+    inline auto comment(Pass::Action a = [](MatchData&){}) {
+        return new Or({
+            new Sequence({
+                new Sequence({
+                        new String("//"),
+                        new Until_At(new Or({new Char('\n'), new EndOfFile()}))
+                    },
+                    [](MatchData&x) { (new Tokens::CommentToken())->collapse(*x.token_list); }
+                ),
+                new Optional(new Char('\n'))
+            }),
+            new Sequence({
+                new Sequence({
+                        new String("/*"),
+                        new Until_At(new Or({new String("*/"), new EndOfFile()})),
+                        new Optional(new String("*/"))
+                    },
+                    [](MatchData&x) { (new Tokens::CommentToken())->collapse(*x.token_list); }
+                ),
+            })
+        });
+    }
+    
+    inline auto to_diagnostic(const char * msg) {
+        return [msg](MatchData&x) {
+            (new Tokens::DiagnosticToken(msg))->collapse(*x.token_list);
+        };
     }
 
     inline void parse(TokenStream & ts) {
-        reset();
-        pm->runFromStart(*token_list, ts);
-        token_list->print();
+        MicroCpu2 cpu;
+        MicroCpu2::InstructionList instruction_list;
+        pushParseContext(&instruction_list);
+        auto seq = Sequence({
+            new Echo("parsing..."),
+            //new Range({'a', 'z', 'A', 'Z'}, [](auto&x){(new SpanToken())->collapse(*x.token_list);}),
+            new Until_At(
+                new EndOfFile(),
+                new Or({
+                    new Range({'a', 'z', 'A', 'Z'}, [](auto&x){(new SpanToken())->collapse(*x.token_list);}),
+                    new OneOrMore(comment()),
+                    new Char('\n'), new Char(' '), new Char('\t'), new Char(';'),
+                    
+                    // skip any tokens which are not valid
+                    //
+                    new Any(to_diagnostic("invalid token"))
+                })
+            ),
+            new EndOfFile(),
+            new Echo("parsing complete")
+        });
+        seq.after(&instruction_list);
+        popParseContext(&instruction_list);
+
+        TokenList token_list;
+        TokenPassData data;
+
+        data.token_list = &token_list;
+        data.token_stream = &ts;
+        data.current_cpu = &cpu;
+
+        cpu.exe(&instruction_list, &data);
+
+        token_list.print();
     }
 };
 

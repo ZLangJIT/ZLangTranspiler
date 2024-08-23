@@ -47,6 +47,13 @@ endif()
 #    COMMAND $<TARGET_FILE:Reflex> --debug ${CMAKE_CURRENT_SOURCE_DIR}/src/spec.yy -o ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_lexer.cpp
 #)
 
+if (true)
+testBuilder_add_include(vcpu2 include)
+testBuilder_add_source(vcpu2 src/vcpu2_tests.cpp)
+testBuilder_build(vcpu2 EXECUTABLES)
+endif()
+
+if (true)
 testBuilder_add_include(zlang include)
 testBuilder_add_include(zlang mmaptwo-plus)
 testBuilder_add_include(zlang Composable-List/include)
@@ -55,9 +62,10 @@ testBuilder_add_source(zlang src/main.cpp)
 testBuilder_add_source(zlang src/ifstream_iterator.cpp)
 testBuilder_add_source(zlang src/mmap.cpp)
 testBuilder_add_source(zlang src/mmap_iterator.cpp)
-testBuilder_add_source(zlang src/token_stream.cpp)
+testBuilder_add_source(zlang src/token.cpp)
 
 testBuilder_add_library(zlang mmaptwo_plus)
 testBuilder_build(zlang EXECUTABLES)
+endif()
 
 set(ZLANG_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include PARENT_SCOPE)
