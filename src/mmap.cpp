@@ -1,16 +1,5 @@
 #include <mmap.h>
 
-void MMapHelper::error(std::exception const& e) {
-    if (strstr(e.what(), "size of zero invalid") != nullptr) {
-        zero_size = true;
-        open = true;
-        return;
-    }
-    std::cerr << "failed to open file:" << std::endl;
-    std::cerr << "\t" << e.what() << std::endl;
-    open = false;
-}
-
 MMapHelper::MMapHelper() : page_size(mmaptwo::get_page_size()*400), api(mmaptwo::get_os() == mmaptwo::os_unix ? "mmap(2)" : mmaptwo::get_os() == mmaptwo::os_win32 ? "MapViewOfFile" : "(unknown api)") {}
 
 MMapHelper::MMapHelper(const char * path, char mode) : MMapHelper() {
@@ -19,7 +8,14 @@ MMapHelper::MMapHelper(const char * path, char mode) : MMapHelper() {
         allocated_file = std::shared_ptr<MMapHelper::Map>(mmaptwo::open(path, m, 0, 0), [](auto p) { delete static_cast<MMapHelper::Map*>(p); });
         open = true;
     } catch (std::exception const& e) {
-        error(e);
+      if (strstr(e.what(), "size of zero invalid") != nullptr) {
+          zero_size = true;
+          open = true;
+          return;
+      }
+      std::cerr << "failed to open file:" << path << std::endl;
+      std::cerr << "\t" << e.what() << std::endl;
+      open = false;
     }
 }
 
@@ -29,8 +25,15 @@ MMapHelper::MMapHelper(const unsigned char * path, char mode) : MMapHelper() {
         allocated_file = std::shared_ptr<MMapHelper::Map>(mmaptwo::u8open(path, m, 0, 0), [](auto p) { delete static_cast<MMapHelper::Map*>(p); });
         open = true;
     } catch (std::exception const& e) {
-        error(e);
-    }
+        if (strstr(e.what(), "size of zero invalid") != nullptr) {
+          zero_size = true;
+          open = true;
+          return;
+      }
+      std::cerr << "failed to open file:" << path << std::endl;
+      std::cerr << "\t" << e.what() << std::endl;
+      open = false;
+  }
 }
 
 MMapHelper::MMapHelper(const wchar_t * path, char mode) : MMapHelper() {
@@ -39,7 +42,14 @@ MMapHelper::MMapHelper(const wchar_t * path, char mode) : MMapHelper() {
         allocated_file = std::shared_ptr<MMapHelper::Map>(mmaptwo::wopen(path, m, 0, 0), [](auto p) { delete static_cast<MMapHelper::Map*>(p); });
         open = true;
     } catch (std::exception const& e) {
-        error(e);
+      if (strstr(e.what(), "size of zero invalid") != nullptr) {
+          zero_size = true;
+          open = true;
+          return;
+      }
+      std::wcerr << "failed to open file:" << path << std::endl;
+      std::wcerr << "\t" << e.what() << std::endl;
+      open = false;
     }
 }
 

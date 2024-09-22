@@ -1,0 +1,36 @@
+cdecl> set noprompt
+set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+  noprompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+set prompt
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo

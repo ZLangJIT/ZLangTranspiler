@@ -1,0 +1,3760 @@
+.\"
+.\"     cdecl -- C gibberish translator
+.\"     cdecl.1: manual page
+.\"
+.\"     Copyright (C) 2017-2024  Paul J. Lucas, et al.
+.\"
+.\"     This program is free software: you can redistribute it and/or modify
+.\"     it under the terms of the GNU General Public License as published by
+.\"     the Free Software Foundation, either version 3 of the License, or
+.\"     (at your option) any later version.
+.\"
+.\"     This program is distributed in the hope that it will be useful,
+.\"     but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"     GNU General Public License for more details.
+.\"
+.\"     You should have received a copy of the GNU General Public License
+.\"     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---------------------------------------------------------------------------
+.\" define code-start macro
+.de cS
+.sp
+.nf
+.RS 5
+.ft CW
+..
+.\" define code-end macro
+.de cE
+.ft 1
+.RE
+.fi
+.if !'\\$1'0' .sp
+..
+.\" ---------------------------------------------------------------------------
+.TH \f3cdecl\fP 1 "August 15, 2024" "PJL TOOLS"
+.SH NAME
+cdecl, c++decl \- compose and decipher C & C++ declarations and casts
+.SH SYNOPSIS
+.B cdecl
+.BI [ options ]
+.BI [ command " " ... ]
+.br
+.B c++decl
+.BI [ options ]
+.BI [ command " " ... ]
+.br
+.B explain
+.BI [ options ]
+.I gibberish
+.SH DESCRIPTION
+\f2``I'm still uncertain about the language declaration syntax,
+where in declarations,
+syntax is used that mimics the use of the variables being declared.
+It is one of the things that draws strong criticism,
+but it has a certain logic to it.''\fP
+.PD 0
+.IP
+\(em Dennis M. Ritchie, Creator of C
+
+.P
+.PD
+.I "``I consider the C declarator syntax an experiment that failed.''"
+.PD 0
+.IP
+\(em Bjarne Stroustrup, Creator of C++
+.PD
+.PP
+.B cdecl
+is a program for composing and deciphering C (or C++)
+declarations
+or casts,
+aka ``gibberish.''
+Additionally,
+.B cdecl
+is also for
+developing
+and
+debugging
+C preprocessor macros
+by performing expansion step-by-step.
+.PP
+.B cdecl
+can be used interactively on a terminal
+or accept input from either the command-line or standard input.
+.SH INVOCATION
+.SS Executable Name
+.B cdecl
+may be invoked
+under a number of different names
+(by either renaming the executable
+or creating either a symbolic or hard link to it).
+If it is invoked as:
+.TP 9
+.B cdecl
+Runs with the latest supported version of C as the default language.
+.TP
+.BR c++decl " | " cppdecl " | " cxxdecl
+Runs with the latest supported version of C++ as the default language.
+.TP
+.B explain
+Runs with the latest supported version of C as the default language
+interpreting the rest of the command-line
+(if given)
+as gibberish,
+performs the conversion to pseudo-English,
+and exits.
+.P
+For example
+(where \f(CW$\fP is the shell prompt):
+.cS
+$ explain 'int *const (*p)[4]'
+declare p as pointer to array 4 of constant pointer to integer
+.cE
+For declarations given on the command line,
+care must be taken either to escape or quote shell metacharacters.
+The default language can be specified via the
+.B cdeclrc
+file
+(see
+.BR "CONFIGURATION FILES" ).
+.SS First Argument
+.B cdecl
+will also behave as above
+if the first non-option argument
+on the command-line
+or the first whitespace separated word thereof
+is a
+.B cdecl
+command
+(see
+.BR Commands ):
+.cS
+$ cdecl declare p as pointer to array 4 of int
+int (*p)[4];
+
+$ c++decl 'reinterpret cast n into pointer to unsigned'
+reinterpret_cast<unsigned*>(n)
+.cE 0
+.SS Standard Input
+If no arguments are given,
+standard input will be read
+until end-of-file is encountered
+or one of the
+.BR exit ,
+.BR q ,
+or
+.B quit
+commands is read.
+.PP
+You can use
+.B cdecl
+as you create a C (or C++) program from within an editor.
+For example,
+in
+.BR vi (1),
+type the declaration in pseudo-English,
+then filter the line through
+.BR cdecl :
+.cS
+!!cdecl<CR>
+.cE
+where \f(CW<CR>\fP is the
+.I return
+key.
+.SS Interactive Input
+If standard input is coming from a terminal,
+a prompt of either
+\f(CWcdecl>\fP
+or
+\f(CWc++decl>\fP
+will be written to the terminal before each line of input.
+The prompt can be turned off by either the
+.B \-\-no-prompt
+or
+.B \-P
+option
+or the
+.B "set noprompt"
+command.
+.PP
+.B cdecl
+uses the GNU
+.BR readline (3)
+library
+(if available and compiled in)
+to provide keyword completion,
+command-line history,
+and
+editing.
+.SH OPTIONS
+An option argument
+.I f
+means
+.IR file ,
+.I n
+means
+.IR "unsigned integer" ,
+and
+.I s
+means
+.IR string .
+.TP 4
+.BR \-\-alt-tokens " | " \-a
+Turns on alternative token output.
+The alternative tokens are:
+\f(CWand\fP (\f(CW&&\fP),
+\f(CWand_eq\fP (\f(CW&=\fP),
+\f(CWbitand\fP (\f(CW&\fP),
+\f(CWbitor\fP (\f(CW|\fP),
+\f(CWcompl\fP (\f(CW~\fP),
+\f(CWnot\fP (\f(CW!\fP),
+\f(CWnot_eq\fP (\f(CW!=\fP),
+\f(CWor\fP (\f(CW||\fP),
+\f(CWor_eq\fP (\f(CW|=\fP),
+\f(CWxor\fP (\f(CW^\fP),
+and
+\f(CWxor_eq\fP (\f(CW^=\fP).
+(Supported only in C95 and later.)
+.TP
+.BR \-\-bison-debug " | " \-B
+Turns on
+.BR bison (1)
+debugging output
+(if compiled in).
+The additional output is of grammar productions
+as they are being reduced by the parser.
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+.TP
+.BI \-\-color \f1=\fPs "\f1 | \fP" "" \-k " s"
+Sets when to colorize output to
+.I s
+(which is case-insensitive).
+(See the
+.B CDECL_COLORS
+environment variable about colorization.)
+The choices for
+.I s
+are:
+.RS
+.TP 8
+.B always
+Always colorize.
+.TP
+.BR auto " | " isatty " | " tty
+Colorize only when standard output is connected to a TTY
+(terminal).
+.TP
+.B never
+Never colorize.
+.TP
+.BR not_file " | " not_isreg
+Colorize only when
+.I not
+writing to a regular file
+(hence writing to a TTY or pipe).
+(Specifically,
+.BR fstat (3)
+is called on standard output:
+colorize only if \f(CWS_IFREG\fP is false.)
+.IP
+This is more useful than
+.B isatty
+since it accommodates the common case of allowing color output to be piped to
+.BR less (1)
+and still display in color since
+.B less
+understands
+.I SGR
+(``Select Graphic Rendition'')
+ASCII terminal escape sequences
+that produce color.
+.RE
+.IP
+The default is
+.BR not_file .
+.TP
+.BR \-\-commands " | " \-K
+Prints a sorted list of all
+.B cdecl
+commands
+for the current language
+that may be used as the first argument
+on a command-line.
+(See
+.BR "First Argument" .)
+This is intended for consumption
+by a shell completion function.
+(See also
+.B \-\-options
+or
+.BR \-O .)
+.TP
+.BI \-\-config \f1=\fPf "\f1 | \fP" "" \-c " f"
+Specifies the configuration file
+.I f
+to read
+(see
+.BR "CONFIGURATION FILES" ).
+.TP
+.BI \-\-debug \f1[\fP "=" s \f1]\fP " \f1|\fP " \-d\f1[\fP s \f1]\fP
+Turns on
+.B cdecl
+debugging output:
+.RS 4
+.IP \(bu 3
+While parsing a command,
+prints additional JSON5 output of an abstract syntax tree
+(AST)
+as it is being constructed
+from user input
+while the parser is reducing grammar productions.
+.IP \(bu
+While expanding a macro,
+prints additional JSON5 output of the tokens.
+.IP \(bu
+If an error or warning message is printed,
+includes the
+.RI \f(CW[\fP file \f(CW:\fP line \f(CW]\fP
+of the code that generated said message.
+.IP \(bu
+For syntax errors,
+includes the numeric
+.RI \f(CW[\fP id \f(CW]\fP
+of the token that caused the error.
+.RE
+.IP
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+.IP
+Valid formats for
+.I s
+are:
+.RS 8
+.TP 4
+.PD 0
+.B u
+Include AST node \f(CWunique_id\fP values in JSON5 output
+as an additional debugging aid.
+.RE
+.PD
+.IP
+Alternatively,
+\f(CW*\fP may be given to mean ``all''
+or
+\f(CW-\fP may be given to mean ``none.''
+.TP
+.BR \-\-digraphs " | " \-2
+Turns on digraph token output.
+The digraph tokens are:
+\f(CW<:\fP (\f(CW[\fP)
+and
+\f(CW:>\fP (\f(CW]\fP).
+(Supported only in C95 and later.)
+.TP
+.BR \-\-east-const " | " \-e
+Turns on ``east const'' output
+where \f(CWconst\fP (and \f(CWvolatile\fP)
+are printed to the right
+(``east'')
+of the type,
+e.g.:
+.RS
+.cS
+const int i;  // west
+int const j;  // east
+.cE 0
+.RE
+.IP
+(Not supported in K&R\~C.)
+.TP
+.BR \-\-echo-commands " | " \-E
+Echoes commands
+before their corresponding output,
+but only when not interactive.
+(This is primarily useful
+for associating command output
+with input
+in test scripts.)
+.TP
+.BI \-\-explicit-ecsu \f1=\fPs "\f1 | \fP" "" \-S " s"
+For C++ only,
+sets the type keywords to
+.I s
+(which is case-insensitive)
+that should be explicitly included in declarations.
+Valid formats for
+.I s
+are:
+.RS 8
+.TP 4
+.PD 0
+.B e
+\f(CWenum\fP
+.TP
+.B c
+\f(CWclass\fP
+.TP
+.B s
+\f(CWstruct\fP
+.TP
+.B u
+\f(CWunion\fP
+.RE
+.PD
+.IP
+Multiple format may be given,
+one immediately after the other.
+Alternatively,
+\f(CW*\fP may be given to mean ``all''
+or
+\f(CW-\fP may be given to mean ``none.''
+The default is
+.BR su .
+For example,
+using the default:
+.RS
+.cS
+c++decl> declare ps as pointer to struct S
+struct S *ps;
+c++decl> declare pt as pointer to class T
+T *pt;
+.cE 0
+.RE
+.IP
+(See
+.BR "Other Caveats" .)
+For C,
+\f(CWenum\fP,
+\f(CWstruct\fP,
+and
+\f(CWunion\fP
+are always included in declarations.
+.TP
+.BI \-\-explicit-int \f1=\fPs "\f1 | \fP" "" \-i " s"
+Sets the integer types to
+.I s
+(which is case-insensitive)
+that should have \f(CWint\fP explicitly included in declarations.
+(Normally,
+\f(CWint\fP is omitted for \f(CWshort\fP,
+\f(CWlong\fP,
+\f(CWlong long\fP,
+or
+\f(CWunsigned\fP
+declarations
+where \f(CWint\fP is implied.)
+Valid formats for
+.I s
+are:
+.RS 8
+.TP 4
+.B i
+All signed integer types.
+.TP
+.B u
+All unsigned integer types.
+.TP
+.RB [ u ]{ i | s | l [ l ]}
+Possibly \f(CWunsigned\fP:
+\f(CWint\fP,
+\f(CWshort\fP,
+\f(CWlong\fP,
+or
+\f(CWlong long\fP.
+.RE
+.IP
+Multiple formats may be given,
+one immediately after the other,
+e.g., \f(CWusl\fP
+means \f(CWunsigned short\fP and (signed) \f(CWlong\fP.
+Parsing is greedy so commas may be used to separate formats.
+For example,
+\f(CWulll\fP is parsed as \f(CWunsigned long long\fP
+and \f(CWlong\fP
+whereas \f(CWul,ll\fP is parsed as \f(CWunsigned long\fP and \f(CWlong long\fP.
+Note that since \f(CWu\fP is both a shorthand and a modifier,
+\f(CWiu\fP means all signed and unsigned integer types
+whereas \f(CWui\fP means just \f(CWunsigned int\fP.
+Alternatively,
+\f(CW*\fP may be given to mean ``all''
+or
+\f(CW-\fP may be given to mean ``none.''
+.TP
+.BI \-\-file \f1=\fPf "\f1 | \fP" "" \-f " f"
+Reads commands from file
+.IR f .
+.TP
+.BR \-\-flex-debug " | " \-F
+Turns on
+.BR flex (1)
+debugging output
+(if compiled in).
+The additional output is of lexer rules
+as they are being tokenized by the lexer.
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+.TP
+.BR \-\-help " | " \-h
+Prints a help message
+for command-line options
+and exits.
+.TP
+.BR \-\-infer-command " | " \-I
+Tries to infer a command
+when an input line doesn't start with any.
+If an input line starts with a:
+.RS 4
+.IP \(bu 3
+Macro name,
+infers
+.BR expand ;
+.IP \(bu
+C (or C++) declaration,
+infers
+.BR explain .
+.RE
+.TP
+.BI \-\-language \f1=\fPs "\f1 | \fP" "" \-x " s"
+Specifies which version of what language
+.I s
+(which is case-insensitive)
+to use.
+(See
+.B "C AND C++ LANGUAGE VERSIONS"
+for valid languages.)
+The default is
+.B C23
+(for
+.BR cdecl )
+and
+.B C++23
+(for
+.BR c++decl ).
+.TP
+.BI \-\-lineno \f1=\fPn "\f1 | \fP" "" \-L " n"
+Specifies an integer
+.I n
+to add to all line numbers
+in error
+and warning
+messages.
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+.IP
+This is useful when
+.B cdecl
+is called from a shell script
+with a
+.I "here document"
+for input.
+Consider a \f(CWtest-script\fP
+(showing line numbers)
+like:
+.RS
+.cS
+1 #! /usr/bin/env bash
+2 cdecl --echo-commands --lineno=$LINENO <<END
+3 explain int
+4 END
+.cE 0
+.RE
+.IP
+where \f(CW$LINENO\fP
+(the shell environment variable
+containing the current the line number of the script,
+in this case,
+the one
+.B cdecl
+is called on \(em in this example: 2)
+is given.
+When executed,
+the script will print:
+.RS
+.cS
+$ test-script
+cdecl> explain int
+                  ^
+3,12: error: declaration expected
+.cE 0
+.RE
+.IP
+where the line number printed is 3
+(the starting line number 1 plus 2 from \f(CW$LINENO\fP)
+which is the absolute line number
+within the script
+as opposed to the here document
+that makes locating offending lines easier.
+(See
+.BR "Other Caveats" .)
+.TP
+.BR \-\-no-buffer-stdout " | " \-b
+Sets standard output to unbuffered.
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+.TP
+.BR \-\-no-config " | " \-C
+Suppresses reading of any configuration file,
+even one explicitly specified via either
+.BR \-\-config
+or
+.BR \-c .
+.TP
+.BR \-\-no-english-types " | " \-T
+Prints types in C/C++
+(e.g., \f(CWint\fP),
+not pseudo-English
+(e.g., \f(CWinteger\fP)
+when explaining gibberish.
+.TP
+.BR \-\-no-prompt " | " \-P
+Suppresses printing of the prompt.
+.TP
+.BR \-\-no-semicolon " | " \-s
+Suppresses printing of a final semicolon for C (and C++) declarations.
+.TP
+.BR \-\-no-typedefs " | " \-t
+Suppresses predefining standard types,
+e.g.,
+\f(CWsize_t\fP,
+\f(CWuint8_t\fP,
+etc.
+(See
+.BR "PREDEFINED TYPES" .)
+.TP
+.BR \-\-no-using " | " \-u
+Always declares types with \f(CWtypedef\fP
+rather than \f(CWusing\fP
+in C++11 and later.
+.TP
+.BR \-\-options " | " \-O
+Prints a sorted list of all
+.B cdecl
+options
+that may be used on a command-line
+in an easily parsable form.
+This is intended for consumption
+by a shell completion function.
+(See also
+.B \-\-commands
+or
+.BR \-K .)
+.TP
+.BI \-\-output \f1=\fPf "\f1 | \fP" "" \-o " f"
+Sends all non-error output to file
+.IR f .
+.TP
+.BR \-\-permissive-types " | " \-p
+Permits keywords in language versions
+other than the current language
+as types
+in pseudo-English.
+By default,
+a declaration in C like:
+.RS
+.cS
+declare p as pointer to class
+.cE 0
+.RE
+.IP
+would result in an ``unsupported type in C'' error
+even though \f(CWclass\fP
+could be a valid user-defined type in C.
+This option permits such declarations.
+(See
+.BR "Permissive Types" .)
+.TP
+.BR \-\-trigraphs " | " \-3
+Turns on trigraph token output.
+The trigraph tokens are:
+\f(CW??(\fP (\f(CW[\fP),
+\f(CW??)\fP (\f(CW]\fP),
+\f(CW??'\fP (\f(CW^\fP),
+\f(CW??'=\fP (\f(CW^=\fP),
+\f(CW??!\fP (\f(CW|\fP),
+\f(CW??!=\fP (\f(CW|=\fP),
+\f(CW??!??!\fP (\f(CW||\fP),
+and
+\f(CW??-\fP (\f(CW~\fP).
+(Supported only between C89 and C17
+and between C++03 and C++14.)
+.TP
+.BR \-\-trailing-return " | " \-r
+Declares functions and operators
+using the trailing return type syntax
+in C++11 and later.
+.TP
+.BR \-\-version " | " \-v
+Prints the version number
+and exits.
+If given twice,
+additionally prints
+the set of configure
+feature & package options
+and whether GNU
+.BR readline (3)
+(if compiled in)
+is genuine.
+.TP
+.BI \-\-west-decl \f1=\fPs "\f1 | \fP" "" \-w " s"
+Sets when to print the \f(CW*\fP for pointer
+and \f(CW&\fP and \f(CW&&\fP for references
+adjacent to the type
+(``west'')
+versus adjacent to the name
+(``east'')
+to
+.I s
+(which is case-insensitive),
+e.g.:
+.RS
+.cS
+int *p;       // east
+int* q;       // west
+.cE 0
+.RE
+.IP
+Valid formats for
+.I s
+are:
+.RS 8
+.TP 4
+.PD 0
+.B b
+Block return type.
+.TP
+.B f
+Function (and pointer to function) return type.
+.TP
+.B l
+User-defined literal return type.
+.TP
+.B o
+Operator return type.
+.TP
+.B r
+All return types
+(same as
+.BR bflo ).
+.TP
+.B s
+Structured binding.
+.TP
+.B t
+Non-return type.
+.RE
+.PD
+.IP
+Multiple formats may be given,
+one immediately after the other.
+Alternatively,
+\f(CW*\fP may be given to mean ``all''
+or
+\f(CW-\fP may be given to mean ``none.''
+The default is
+.BR r .
+.IP
+However,
+when more than one name is given in the same
+.B declare
+command
+for anything other than
+a structured binding,
+the \f(CW*\fP,
+\f(CW&\fP,
+and
+\f(CW&&\fP
+are always printed adjacent to the name
+(``east''):
+.RS
+.cS
+cdecl> declare f, g as function returning pointer to char
+char *f(), *g();
+.cE 0
+.RE
+.SH C AND C++ LANGUAGE VERSIONS
+The argument to the
+.B \-\-language
+or
+.B \-x
+option
+or the
+.B set
+command
+is one of the following versions
+(which are case-insensitive):
+.TP 7
+.B C
+Use the latest supported version of the C language.
+.TP
+.BR CK&R " | " CKNR " | " CKR " | " K&R " | " K&RC " | " KNR " | " KNRC " | " KR " | " KRC " | " C78
+Use the pre-ANSI Kernighan & Ritchie version of the C language
+as given in the first edition of
+.IR "The C Programming Language" .
+.TP
+.BR C89 " | " C90
+Use the C89 (first ANSI C) version of the C language.
+Adds support for
+\f(CWconst\fP,
+\f(CWenum\fP,
+\f(CWlong double\fP,
+\f(CWsigned\fP,
+\f(CWunsigned char\fP,
+\f(CWunsigned long\fP,
+\f(CWunsigned short\fP,
+\f(CWvoid\fP,
+\f(CWvolatile\fP,
+and function prototypes.
+Adds support for
+C preprocessor token concatenation
+via \f(CW##\fP
+and stringification
+via \f(CW#\fP.
+.TP
+.B C95
+Use the C95 version of the C language.
+Adds support for
+\f(CWwchar_t\fP.
+.TP
+.B C99
+Use the C99 version of the C language.
+Adds support for
+\f(CW_Bool\fP,
+\f(CW_Complex\fP,
+\f(CW_Imaginary\fP,
+\f(CWinline\fP functions,
+\f(CWlong long\fP,
+\f(CWrestrict\fP,
+and
+\f(CWstatic\fP, type-qualified, and variable length array
+function parameters.
+Adds support for C preprocessor variadic macros.
+.TP
+.B C11
+Use the C11 version of the C language.
+Adds support for
+\f(CW_Alignas\fP,
+\f(CW_Atomic\fP,
+\f(CWchar16_t\fP,
+\f(CWchar32_t\fP,
+\f(CW_Noreturn\fP,
+and
+\f(CW_Thread_local\fP.
+.TP
+.BR C17 " | " C18
+Use the C17 version of the C language.
+(Minor revision:
+no new features.
+Equivalent to C11.)
+.TP
+.B C23
+Use the C23 version of the C language.
+Adds support for
+\f(CWalignas\fP,
+\f(CWauto\fP (as a deduced type),
+\f(CW_BitInt\fP,
+\f(CWbool\fP,
+\f(CWchar8_t\fP,
+\f(CWconstexpr\fP,
+\f(CW[[deprecated]]\fP,
+\f(CWfalse\fP,
+fixed-type enumerations,
+\f(CW[[maybe_unused]]\fP,
+\f(CW[[nodiscard]]\fP,
+\f(CWnullptr\fP,
+\f(CW[[reproducible]]\fP,
+\f(CWthread_local\fP,
+\f(CWtrue\fP,
+\f(CWtypeof\fP,
+\f(CW[[unsequenced]]\fP,
+and
+the \f(CW__VA_OPT__\fP preprocessor macro.
+.TP
+.B C++
+Use the latest supported version of the C++ language.
+.TP
+.B C++98
+Use the C++98 version of the C++ language.
+Adds support for
+\f(CWclass\fP,
+constructors,
+destructors,
+exception specifications (\f(CWthrow\fP),
+\f(CWmutable\fP data members,
+\f(CWnamespace\fP,
+new-style casts,
+overloaded operators,
+references,
+pointers to class members,
+user-defined conversion,
+and \f(CWvirtual\fP functions.
+.TP
+.B C++03
+Use the C++03 version of the C++ language.
+(Minor revision;
+no new features.
+Equivalent to C++98.)
+.TP
+.B C++11
+Use the C++11 version of the C++ language.
+Adds support for
+\f(CWalignas\fP,
+\f(CWauto\fP (as a deduced type),
+\f(CW[[carries_dependency]]\fP,
+\f(CWchar16_t\fP,
+\f(CWchar32_t\fP,
+\f(CWconstexpr\fP,
+\f(CWdefault\fP and \f(CWdelete\fP for member functions,
+\f(CWenum class\fP,
+\f(CWfinal\fP,
+fixed-type enumerations,
+function trailing return-types,
+\f(CWinline\fP namespaces,
+lambdas,
+\f(CWlong long\fP,
+member function ref-qualfiers,
+\f(CWnoexcept\fP,
+\f(CW[[noreturn]]\fP,
+\f(CWoverride\fP,
+rvalue references,
+\f(CWthread_local\fP,
+\f(CWusing\fP (as a \f(CWtypedef\fP synonym),
+and
+user-defined literals.
+.TP
+.B C++14
+Use the C++14 version of the C++ language.
+Adds support for
+\f(CWauto\fP
+and
+\f(CWconstexpr\fP
+return types
+and
+\f(CW[[deprecated]]\fP.
+.TP
+.B C++17
+Use the C++17 version of the C++ language.
+Adds support for
+\f(CWinline\fP
+variables,
+\f(CW[[maybe_unused]]\fP,
+nested namespace declarations,
+\f(CW[[nodiscard]]\fP,
+and
+structured bindings.
+.TP
+.B C++20
+Use the C++20 version of the C++ language.
+Adds support for
+\f(CWauto\fP parameters and parameter packs,
+\f(CWchar8_t\fP,
+\f(CWconsteval\fP,
+\f(CWconstinit\fP,
+\f(CWdefault\fP relational operators,
+\f(CWexport\fP,
+nested \f(CWinline\fP namespaces,
+\f(CW[[no_unique_address]]\fP,
+\f(CWoperator<=>\fP,
+and
+the \f(CW__VA_OPT__\fP preprocessor macro.
+.TP
+.B C++23
+Use the C++23 version of the C++ language.
+Adds support for
+\f(CW_Atomic\fP,
+explicit object parameters,
+\f(CWstatic operator()\fP,
+and
+zero or more parameters for \f(CWoperator[]\fP.
+.SH CDECL LANGUAGE
+.SS Commands
+In what follows,
+[] means zero or one,
+* means zero or more,
+{} means one of,
+and
+| means alternate.
+.P
+.B cdecl
+has the following commands:
+.RS 4
+.TP 4
+.BR cast " [" \f2s-name\fP "] " { as |[ in ] to "} " \f2english\fP
+Composes a C (or C++) cast from pseudo-English.
+.TP
+.RB { const | dynamic | reinterpret | static } " cast \f2s-name\fP" " {" as |[ in ] to "} " \f2english\fP
+Composes a C++ new-style cast from pseudo-English.
+.TP
+.BR declare " \f2s-name\fP [" , " \f2s-name\fP" "" "]* " as " \f2english\fP [" width " \f2number\fP [" bits ]]
+Composes C (or C++) declarations from pseudo-English
+with an optional bit-field width
+(for integral types only).
+.TP
+.BR declare " \f2s-name\fP [" , " \f2s-name\fP" "" "]* " "as " \f2english\fP " aligned " [ as | to "] { " \f2number\fP " [" bytes "] | " \f2english\fP " }"
+Composes C (or C++) declarations from pseudo-English
+aligned to either a specific number of bytes
+or the same alignment as
+.IR english .
+.TP
+.BI declare " operator" " as" " english"
+For C++ only,
+composes an overloaded operator declaration from pseudo-English.
+.TP
+.BR declare " \f2store\fP* " lambda " [[" captures ] " [" \f2captures\fP ] "] [" ( [ \f2args\fP ] ) "] [" returning " \f2english\fP" "" ]
+For C++ only,
+composes a lambda declaration
+from pseudo-English.
+.TP
+.BR declare " \f2store\fP* " "user-defined conversion" " [" operator "] [" "of " "\f2scope-e\fP" " \f2s-name\fP" ]* " returning " \f2english\fP
+For C++ only,
+composes a user-defined conversion operator
+from pseudo-English.
+.TP
+.BI define " s-name" " as" " english"
+Defines a type (\f(CWtypedef\fP) from pseudo-English.
+.TP
+.BI #define " name " \f1[\fP pp-tokens \f1]\fP
+Defines an object-like macro
+that expands into
+.IR pp-tokens .
+.TP
+.BI #define " name" ( \f1[\fP "" pp-params "" \f1]\fP ") " \f1[\fP "" pp-tokens "" \f1]\fP
+Defines a function-like macro
+that expands into
+.IR pp-tokens .
+Note that the \f(CW(\fP
+.I must
+be adjacent to
+.IR name .
+.TP
+.TP
+.BR enum " [" class "] " \f2s-name\fP " [" ": " \f2type\fP "" ]
+Defines
+.I s-name
+as an \f(CWenum\fP
+(or an \f(CWenum class\fP in C++)
+type
+optionally of a fixed underlying type.
+In C,
+this is equivalent to:
+.RS
+.cS
+typedef enum \f2s-name\fP \f2s-name\fP
+.cE 0
+.RE
+.TP
+.BR expand " \f2name\fP [" ( [ \f2pp-args\fP ] ) "] [" \f2pp-tokens\fP ]
+Expands a previously defined macro
+step by step
+using the supplied arguments
+(if given).
+The additional
+.I pp-tokens
+(if given)
+are appended
+and expanded.
+.TP
+.BR explain " \f2gibberish\fP [" , " \f2gibberish\fP]*"
+Deciphers C (or C++) declarations or a new-style cast (C++ only)
+into pseudo-English.
+.TP
+.BR "explain (" \f2gibberish\fP ")" [ \f2s-name\fP ]
+Deciphers a C (or C++) cast into pseudo-English.
+.TP
+.BI "include """ path """"
+Includes the file denoted by
+.I path
+and performs the contained commands.
+(This is typically used in a configuration file
+to include another configuration file.)
+Shell meta characters in
+.IR path ,
+e.g., \f(CW~\fP,
+are expanded.
+.IP
+Note that
+.B include
+is recognized as a
+.B cdecl
+command only when immediately followed
+by a string literal.
+.TP
+.BI "#include """ path """"
+Same as
+.BR include ,
+except
+.B #include
+may not end with \f(CW;\fP
+and
+.I must
+be on a line by itself.
+.TP
+.RB "{ " struct " | " union " | " class " } " \f2s-name\fP
+Defines
+.I s-name
+as a
+\f(CWstruct\fP,
+\f(CWunion\fP,
+or
+\f(CWclass\fP (C++ only)
+type.
+In C,
+this is equivalent to:
+.RS
+.cS
+typedef \f1{\fP struct \f1|\fP union \f1}\fP \f2s-name\fP \f2s-name\fP
+.cE 0
+.RE
+.TP
+.IR "scope-c s-name" " " \f3{\fP " [{ " scope-c " | " typedef " | " using " } " \f3;\fP "]* " \f3}\fP "
+For C++ only,
+defines
+.I s-name
+as a
+.I scope-c
+(\f(CWstruct\fP,
+\f(CWunion\fP,
+or
+\f(CWclass\fP)
+type;
+or begins a \f(CW namespace\fP.
+Also executes zero or more
+.BR class ,
+.BR struct ,
+.BR typedef ,
+.BR union ,
+or
+.B using
+commands within the scope of
+.I s-name
+thus declaring type(s) within that scope.
+.TP
+.BR set " [" \f2option\fP " [" "= " \f2value\fP "" "] | " options " | " \f2lang\fP ]*
+In the first form,
+sets a particular option
+(see
+.B "Set Options"
+for valid options);
+in the second form,
+prints the current value of all options;
+in the third form,
+sets the current language to
+.IR lang .
+If no argument is given,
+it's equivalent to the second form.
+.TP
+.BR show " [ " \f2s-name\fP " | [" all "] [" predefined " | " user "] [" \f2glob\fP "]] [[" as "] {" english " | " typedef " | " using "}]"
+.RS 4
+.IP \(bu 3
+For
+.IR s-name ,
+shows the definition for a previously defined type
+(via
+.BR define ,
+.BR typedef ,
+or
+.BR using )
+having that name.
+.IP \(bu
+For
+.B all
+only,
+shows all predefined and user-defined types.
+.IP \(bu
+For
+.BR predefined ,
+shows only predefined types
+that are valid in the current language
+or later.
+.IP \(bu
+For
+.BR user ,
+shows only user-defined types
+that were defined in the current language
+or later.
+.IP \(bu
+For either
+.B "all predefined"
+or
+.BR "all user" ,
+shows their respective set of types
+regardless of the current language.
+.IP \(bu
+For none of
+.IR s-name ,
+.BR all ,
+.BR predefined ,
+.BR user ,
+or
+.IR glob ,
+equivalent to
+.BR "show user" .
+.RE
+.IP
+By default,
+types are shown as they were defined.
+If
+.B typedef
+is given,
+types are shown as \f(CWtypedef\fP declarations.
+For C++11 or later only,
+if
+.B using
+is given,
+types are shown as \f(CWusing\fP declarations.
+.TP
+.BR show " { " \f2name\fP " | [" predefined " | " user "] " macros " }"
+.RS 4
+.IP \(bu 3
+For
+.IR name ,
+shows the definition for a previously defined macro
+(via
+.BR #define )
+having that name.
+.IP \(bu
+For
+.BR predefined ,
+shows only predefined macros
+that are valid in the current language
+or later.
+.IP \(bu
+For
+.BR user ,
+shows only user-defined macros.
+.IP \(bu
+For neither
+.B predefined
+nor
+.BR user,
+equivalent to
+.BR "show user" .
+.RE
+.TP
+.BR type [ def ] " \f2gibberish\fP" " [" , " \f2gibberish\fP]*"
+Defines types via a C (or C++) \f(CWtypedef\fP declaration.
+.TP
+.BI #undef " name"
+Undefines a previously defined macro.
+.TP
+.BI using " name" " = " gibberish
+For C++11 or later only,
+defines a type via a \f(CWusing\fP declaration.
+.TP
+.RB "{ " help " | " ? " } [ " command [ s "] | " \f2command\fP " | " english " | " options " ]"
+Prints help that's sensitive to the current programming language
+(C or C++).
+By default
+or when
+.B command
+or
+.B commands
+is given,
+prints help on
+.BR cdecl 's
+commands
+(this section);
+if
+.I command
+is given,
+prints help only for that command;
+if
+.B english
+is given,
+prints help on pseudo-English
+(see
+.B English
+below);
+if
+.B options
+is given,
+prints help on
+.BR cdecl 's
+options
+(see
+.B "Set Options"
+below).
+.TP
+.BR exit " | " q [ uit ]
+Quits
+.BR cdecl .
+Note that
+.B q
+is recognized as a synonym for
+.B quit
+only when it's the only thing on a line
+other than whitespace.
+.RE
+.P
+where:
+.RS 4
+.TP 12
+.I args
+A comma-separated list of
+.IR s-name ,
+.IR english ,
+.I s-name
+.B as
+.IR english ;
+or one of
+.BR varargs ,
+.BR variadic ,
+or
+.B ...
+(ellipsis).
+.TP
+.I captures
+Optionally either
+.B "copy by default"
+.RB "(or " = )
+or
+.B "reference by default"
+.RB "(or " & )
+followed by a comma-separated list of
+.I name
+or
+.B "reference to"
+.IR name .
+.TP
+.I name
+A valid C (or C++) identifier.
+.TP
+.I operator
+A valid C++ operator.
+.TP
+.I s-name
+For C,
+is the same as
+.IR name ;
+for C++,
+is either the same as
+.IR name
+or is a scoped name
+that may always be specified using \f(CW::\fP,
+e.g.,
+\f(CWS::T::x\fP,
+or in an
+.I english
+context,
+may alternatively be specified as
+.I s-name
+.RB [ of
+.I scope-e
+.IR s-name ]*.
+.TP
+.I glob
+For C,
+a
+.IR name ;
+or for C++,
+a scoped name
+that may contain \f(CW::\fP.
+Either may contain \f(CW*\fP as a wildcard,
+e.g.,
+\f(CWT*\fP (any type name starting with \f(CWT\fP),
+\f(CW*::T*\fP (any type name starting with \f(CWT\fP in any top-level scope).
+As a special case for C++,
+.I glob
+may start with \f(CW**::\fP to match a type name in any scope.
+.TP
+.I pp-args
+A comma-separated list of valid C (or C++) tokens
+for macro arguments.
+.TP
+.I pp-params
+A comma-separated list of valid C (or C++) identifiers
+for macro parameters.
+In C99 and later,
+the last parameter may be
+.BR ... .
+.TP
+.I pp-tokens
+A set of valid C (or C++) tokens.
+.TP
+.I scope-c
+A C or C++ scope-creating keyword,
+one of:
+.BR class ,
+.BR namespace ,
+.BR struct ,
+or
+.BR union .
+.TP
+.I scope-e
+An extended scope-creating keyword,
+either one of
+.I scope-c
+or the
+.BR cdecl -specific
+.B scope
+when the particular
+.I scope-c
+is either
+unknown when \f(CWT\fP wasn't previously declared
+or when it doesn't matter.
+For example:
+.RS 9
+.cS
+c++decl> explain int T::x
+declare x of scope T as integer
+.cE 0
+.RE
+.IP
+.B cdecl
+knows \f(CWT\fP
+is one of
+.IR scope-c ,
+but it has no way to know which one
+so it uses the generic
+.BR scope .
+Similarly,
+you may use
+.B scope
+when you don't care which:
+.RS 9
+.cS
+c++decl> declare x of scope T as int
+int T::x;
+.cE 0
+.RE
+.P
+Commands are terminated by either a semicolon or newline.
+However,
+commands may be given that span multiple lines
+when newlines are escaped via \f(CW\\\fP.
+When a newline is escaped,
+the next prompt
+(if enabled)
+changes to either
+.B cdecl+
+or
+.B c++decl+
+to indicate that the current line
+will be a continuation of the previons line.
+.SS English
+In what follows,
+.B []
+means zero or one,
+.B *
+means zero or more,
+.B {}
+means one of,
+and
+.B |
+means alternate.
+The only punctuation characters used in pseudo-English
+are hyphens in hyphenated words
+and parentheses around
+and commas between
+constructor,
+function,
+operator,
+user-defined literal,
+or
+block
+parameters,
+and brackets around
+lambda captures.
+.P
+.I English
+is one of:
+.P
+.RS 4
+.BR \f2store\fP "* " \f2ar-qual\fP "* " array " [" \f2number\fP | \f2name\fP | * "] " of " \f2english\fP"
+.br
+.BR \f2store\fP "* " \f2ar-qual\fP "* " variable " [" length "] " "array of" " \f2english\fP"
+.br
+.BR block " [" ( [ \f2args\fP ] ) "] [" returning " \f2english\fP" "" "]"
+.br
+.BR \f2cv-qual\fP "* " "concept " \f2s-name\fP "" " [" "parameter pack" "]"
+.br
+.BR \f2store\fP "* " constructor " [" ( [ \f2args\fP ] ) ]
+.br
+.RB [ virtual "] " destructor " [" () ]
+.br
+.BR \f2store\fP "* " \f2fn-qual\fP "* [[" non- "]" member "] " function " [" ( [ \f2args\fP ] ) "] [" returning " \f2english\fP" "" "]"
+.br
+.BR \f2store\fP "* " \f2fn-qual\fP "* [[" non- "]" member "] " operator " [" ( [ \f2args\fP ] ) "] [" returning " \f2english\fP" "" "]"
+.br
+.BR \f2cv-qual\fP "* " "pointer to" " [" "member of class" " \f2s-name\fP" "" ] " \f2english\fP"
+.br
+.RB [ rvalue "] " "reference to" " \f2english\fP"
+.br
+.B "structured binding"
+.br
+.BR \f2store\fP "* " "user-defined literal" " [" ( [ \f2args\fP ] ) "] [" returning " \f2english\fP" "" "]"
+.br
+.IR store "* " modifier "* [" C-type ]
+.br
+.RB "{ " enum " [" class "|" struct "] [" of " [" type "] " \f2english\fP "] | " class " | " namespace " | " struct " | " union " } \f2s-name\fP"
+.RE
+.P
+where:
+.RS 4
+.TP 10
+.I ar-qual
+One of:
+\f(CWnon-empty\fP,
+\f(CWconst\fP,
+\f(CWrestrict\fP,
+or
+\f(CWvolatile\fP.
+.TP
+.I C-type
+One of:
+\f(CWauto\fP (C23 or C++11 or later),
+\f(CWbool\fP,
+\f(CWchar\fP,
+\f(CWchar8_t\fP,
+\f(CWchar16_t\fP,
+\f(CWchar32_t\fP,
+\f(CWwchar_t\fP,
+\f(CWint\fP,
+\f(CWfloat\fP,
+\f(CWdouble\fP,
+\f(CWparameter pack\fP,
+or
+\f(CWvoid\fP;
+or for C99 only:
+\f(CW_Accum\fP
+or
+\f(CW_Fract\fP.
+.TP
+.I cv-qual
+One of:
+\f(CW_Atomic\fP,
+\f(CWconst\fP,
+\f(CWrestrict\fP,
+or
+\f(CWvolatile\fP.
+.TP
+.I fn-qual
+One of:
+\f(CWconst\fP,
+\f(CWfinal\fP,
+\f(CWoverride\fP,
+\f(CWreference\fP,
+\f(CWrestrict\fP,
+\f(CWrvalue reference\fP,
+or
+\f(CWvolatile\fP.
+.TP
+.I modifier
+One of:
+\f(CWshort\fP,
+\f(CWlong\fP,
+\f(CWsigned\fP,
+\f(CWunsigned\fP,
+\f(CW_Complex\fP,
+\f(CW_Imaginary\fP,
+or
+\f(CW_Sat\fP
+(C99 only).
+.TP
+.I number
+One of a
+decimal,
+octal (if starting with \f(CW0\fP),
+hexadecimal (if starting with either \f(CW0x\fP or \f(CW0X\fP),
+or
+binary (if starting with either \f(CW0b\fP or \f(CW0B\fP)
+number.
+.TP
+.I store
+One of:
+\f(CWauto\fP (C17 or earlier, or C++03 or earlier),
+\f(CWblock\fP,
+\f(CWcarries-dependency\fP,
+\f(CWconsteval\fP,
+\f(CWconstexpr\fP,
+\f(CWdeprecated\fP,
+\f(CWexplicit\fP,
+\f(CWexport\fP,
+\f(CWextern\fP,
+\f(CWextern\ "C"\fP,
+\f(CWfinal\fP,
+\f(CWfriend\fP,
+\f(CWinline\fP,
+\f(CWmaybe-unused\fP,
+\f(CWmutable\fP,
+\f(CWnodiscard\fP,
+\f(CWnon-throwing\fP,
+\f(CWnoreturn\fP,
+\f(CWoverride\fP,
+\f(CWregister\fP,
+\f(CWreproducible\fP,
+\f(CWstatic\fP,
+\f(CWthread-local\fP,
+\f(CWtypedef\fP,
+\f(CWunsequenced\fP,
+\f(CWvirtual\fP,
+or
+\f(CWpure virtual\fP.
+.RE
+.P
+If
+.B returning
+.I english
+is omitted,
+it's equivalent to
+.B "returning int"
+in C95 and earlier
+or
+.B "returning void"
+in C99 and later
+or C++.
+.SS Synonyms
+Some synonyms are permitted within pseudo-English.
+The terms on the left are synonyms for what's on the right:
+.cS
+                  accum  _Accum
+                 atomic  _Atomic
+              automatic  auto
+    bit precise integer  _BitInt
+    bit-precise integer  _BitInt
+                   bool  _Bool
+                boolean  _Bool
+                Boolean  _Bool
+                capture  capturing
+               captures  capturing
+     carries dependency  carries_dependency
+     carries-dependency  carries_dependency
+                 char 8  char8_t
+                char 16  char16_t
+                char 32  char32_t
+              character  char
+                command  commands
+                complex  _Complex
+               constant  const
+    constant evaluation  consteval
+    constant-evaluation  consteval
+             const-eval  consteval
+    constant expression  constexpr
+    constant-expression  constexpr
+             const-expr  constexpr
+constant initialization  constinit
+constant-initialization  constinit
+             const-init  constinit
+                   conv  conversion
+                   ctor  constructor
+       double precision  double
+       double-precision  double
+                   dtor  destructor
+            enumeration  enum
+                   eval  evaluation
+               exported  export
+                   expr  expression
+               external  extern
+         floating point  float
+         floating-point  float
+                  fract  _Fract
+                   func  function
+              imaginary  _Imaginary
+                   init  initialization
+                integer  int
+                    len  length
+           maybe unused  maybe_unused
+           maybe-unused  maybe_unused
+                    mbr  member
+             no discard  nodiscard
+             no-discard  nodiscard
+        non-discardable  nodiscard
+              no except  noexcept
+              no-except  noexcept
+           no-exception  noexcept
+      no unique address  no_unique_address
+      no-unique-address  no_unique_address
+     non-unique-address  no_unique_address
+                non-mbr  non-member
+               noreturn  _Noreturn
+              no return  _Noreturn
+              no-return  _Noreturn
+          non-returning  _Noreturn
+           non-throwing  throw()
+                   oper  operator
+             overridden  override
+                 predef  predefined
+                    ptr  pointer
+                    ref  reference
+             restricted  restrict
+                    ret  returning
+                    sat  _Sat
+              saturated  _Sat
+              structure  struct
+                   type  typedef
+           thread local  thread_local
+           thread-local  thread_local
+           thread_local  _Thread_local
+           user defined  user-defined
+               user-def  user-defined
+                    var  variable
+                varargs  ...
+               variadic  ...
+                 vector  array
+         wide character  wchar_t
+.cE 0
+.SS Gibberish
+.I Gibberish
+is any supported C
+(for
+.BR cdecl )
+or C++
+(for
+.BR c++decl )
+declaration of a
+variable,
+constant,
+array,
+macro,
+pointer,
+reference,
+rvalue reference,
+function,
+constructor,
+destructor,
+or
+overloaded operator;
+or
+user-defined type,
+conversion,
+or
+literal;
+or type cast.
+(See
+.B EXAMPLES
+for examples
+and
+.B CAVEATS
+for unsupported declarations.)
+.P
+Gibberish also includes support for the following:
+.IP \(bu 3
+Apple's ``blocks'' syntax
+and the
+\f(CW__block\fP
+storage class.
+.IP \(bu
+For C99 only,
+Embedded C's
+\f(CW_Accum\fP
+and
+\f(CW_Fract\fP
+types,
+and the
+\f(CW_Sat\fP
+modifier.
+.IP \(bu
+For C99 only,
+Unified Parallel C's
+\f(CWrelaxed\fP,
+\f(CWshared\fP,
+and
+\f(CWstrict\fP
+qualifiers.
+.IP \(bu
+GNU C's
+\f(CW__auto_type\fP,
+\f(CW__complex\fP,
+\f(CW__complex__\fP,
+\f(CW__const\fP,
+\f(CW__inline\fP,
+\f(CW__inline__\fP,
+\f(CW__restrict\fP,
+\f(CW__restrict__\fP,
+\f(CW__signed\fP,
+\f(CW__signed__\fP,
+\f(CW__thread\fP,
+\f(CW__typeof__\fP,
+\f(CW__volatile\fP,
+and
+\f(CW__volatile__\fP.
+.IP \(bu
+GNU C's \f(CW__attribute__\fP syntax,
+but all attributes are ignored.
+.IP \(bu
+Microsoft C's \f(CW__declspec\fP syntax,
+but all attributes are ignored.
+.IP \(bu
+Microsoft C's calling conventions
+\f(CW__cdecl\fP,
+\f(CW__clrcall\fP,
+\f(CW__fastcall\fP,
+\f(CW__stdcall\fP
+(also \f(CWWINAPI\fP),
+\f(CW__thiscall\fP,
+and
+\f(CW__vectorcall\fP.
+Pseudo-English also allows the same convention names
+but without the leading \f(CW__\fP.
+.IP \(bu
+Microsoft C's
+\f(CW__forceinline\fP,
+but it's treated as a synonym for \f(CWinline\fP.
+.IP \(bu
+Microsoft C's
+\f(CW_asm\fP,
+\f(CW_cdecl\fP,
+\f(CW_declspec\fP,
+\f(CW_fastcall\fP,
+\f(CW_forceinline\fP,
+\f(CW_inline\fP,
+\f(CW_restrict\fP,
+\f(CW_stdcall\fP,
+and
+\f(CW_vectorcall\fP
+that are synonyms for their respective \f(CW__\fP counterparts.
+.SS Set Options
+The
+.B set
+command takes several options
+(which ignore hyphens).
+Unambiguous option abbreviations may be used.
+.RS 4
+.TP 6
+.RB [ no ] alt-tokens
+Turns [off] on alternative token output
+\(em default is off.
+(Supported only in C95 and later.)
+.TP
+.RB [ no ] bison-debug
+Turns [off] on
+.BR bison (1)
+debugging output
+(if compiled in)
+\(em default is off.
+.TP
+.BR debug [ =\f2s\fP ]
+Turns on
+.B cdecl
+debugging output
+\(em default is off.
+(See the
+.B \-\-debug
+or
+.B \-d
+option for details.)
+.TP
+.B nodebug
+Turns off
+.B cdecl
+debugging output.
+.TP
+.B nographs
+Turns off either digraph or trigraph output,
+i.e.,
+reverts to emitting all characters as-is.
+.TP
+.B digraphs
+Turns on digraph output
+for
+\f(CW[\fP
+and
+\f(CW]\fP
+\(em default is off.
+(Supported only in C95 and later.)
+.TP
+.RB [ no ] east-const
+Turns [off] on ``east const'' output
+where \f(CWconst\fP (and \f(CWvolatile\fP)
+are printed to the right
+(``east'')
+of the type
+\(em default is off.
+(Not supported in K&R\~C.)
+.TP
+.RB [ no ] echo-commands
+Turns [off] on echoing commands
+before corresponding output,
+but only when not interactive
+\(em default is off.
+.TP
+.RB [ no ] english-types
+Turns [off] on printing types in pseudo-English
+(e.g., \f(CWinteger\fP),
+not C/C++
+(e.g., \f(CWint\fP)
+when explaining gibberish
+\(em default is on.
+.TP
+.BI explicit-ecsu \f1=\fPs
+For C++ only,
+turns on explicit
+\f(CWenum\fP,
+\f(CWclass\fP,
+\f(CWstruct\fP,
+or
+\f(CWunion\fP
+in declarations
+\(em default is \f(CWsu\fP
+(for \f(CWstruct\fP
+and \f(CWunion\fP).
+(See the
+.B \-\-explicit-ecsu
+or
+.B \-S
+option for details.)
+.TP
+.BI explicit-int \f1=\fPs
+Turns on explicit \f(CWint\fP for the integer types
+.I s
+\(em default is none.
+(See the
+.B \-\-explicit-int
+or
+.B \-i
+option for details.)
+.TP
+.B noexplicit-ecsu
+For C++ only,
+turns off explicit
+\f(CWenum\fP,
+\f(CWclass\fP,
+\f(CWstruct\fP,
+and
+\f(CWunion\fP
+in declarations.
+.TP
+.B noexplicit-int
+Turns off explicit \f(CWint\fP for all integer types.
+.TP
+.RB [ no ] flex-debug
+Turns [off] on
+.BR flex (1)
+debugging output
+(if compiled in)
+\(em default is off.
+.TP
+.RB [ no ] infer-command
+Turns [off] on trying to infer a command
+when an input line doesn't start with any
+\(em default is off.
+(See the
+.B \-\-infer-command
+or
+.B \-I
+option for details.)
+.TP
+.BI language \f1=\fPs
+Use
+.I s
+(which is case-insensitive)
+as the current language.
+(See
+.B "C AND C++ LANGUAGE VERSIONS"
+for valid languages.)
+.TP
+.I lang
+Shorthand for
+.BI language= lang \f1.\fP
+.TP
+.B options
+Prints the current value of all options.
+.TP
+.RB [ no ] permissive-types
+Turns [off] on permitting keywords in language versions
+other than the current language
+as types
+\(em default is off.
+(See the
+.B \-\-permissive-types
+or
+.B \-p
+option for details.)
+.TP
+.RB [ no ] prompt
+Turns [off] on the prompt
+\(em default is on.
+.TP
+.RB [ no ] semicolon
+Turns [off] on printing a semicolon at the end of a C (or C++) declaration
+\(em default is on.
+.TP
+.B trigraphs
+Turns on trigraph output
+for
+\f(CW[\fP,
+\f(CW]\fP,
+\f(CW^\fP,
+\f(CW|\fP,
+and
+\f(CW~\fP
+\(em default is off.
+(Supported only between C89 and C17
+and between C++03 and C++14.)
+.TP
+.RB [ no ] trailing-return
+Turns [off] on declaring functions and operators
+using the trailing return type syntax
+in C++11 and later
+\(em default is off.
+.TP
+.RB [ no ] using
+Turns [off] on declaring types with \f(CWusing\fP
+rather than \f(CWtypedef\fP
+in C++11 and later
+\(em default is on.
+.TP
+.BI west-decl \f1=\fPs
+Turns on printing the \f(CW*\fP for pointer
+and \f(CW&\fP and \f(CW&&\fP for reference
+types adjacent to the type
+(``west'')
+to
+.I s
+\(em default is
+.B r
+(only all return types).
+(See the
+.B \-\-west-decl
+or
+.B \-w
+option for details.)
+.TP
+.B nowest-decl
+Turns off printing the \f(CW*\fP for pointer
+and \f(CW&\fP and \f(CW&&\fP for reference
+types adjacent to the type
+(``west'')
+for all types.
+.SH PREDEFINED TYPES
+The following types are predefined
+(unless either the
+.B \-\-no-typedefs
+or
+.B \-t
+option is given)
+in the specified language and later.
+However,
+the types
+\f(CWstd::partial_ordering\fP,
+\f(CWstd::strong_ordering\fP,
+and
+\f(CWstd::weak_ordering\fP,
+are always defined in C++20 and later
+since they are required by \f(CWoperator<=>()\fP.
+.SS K&R C
+.na
+.nh
+\f(CWcaddr_t\fP,
+\f(CWdaddr_t\fP,
+\f(CWdev_t\fP,
+\f(CWFILE\fP,
+\f(CWino_t\fP,
+\f(CWjmp_buf\fP,
+\f(CWoff_t\fP,
+\f(CWtime_t\fP,
+\f(CWtm\fP
+.hy
+.ad
+.SS C89
+.na
+.nh
+\f(CWblkcnt_t\fP,
+\f(CWblksize_t\fP,
+\f(CWcc_t\fP,
+\f(CWclockid_t\fP,
+\f(CWclock_t\fP,
+\f(CWDIR\fP,
+\f(CWdiv_t\fP,
+\f(CWdouble_t\fP,
+\f(CWerrno_t\fP,
+\f(CWfd_set\fP,
+\f(CWfemode_t\fP,
+\f(CWfenv_t\fP,
+\f(CWfexcept_t\fP,
+\f(CWfloat_t\fP,
+\f(CWfpos_t\fP,
+\f(CWfsblkcnt_t\fP,
+\f(CWfsfilcnt_t\fP,
+\f(CWgid_t\fP,
+\f(CWiconv_t\fP,
+\f(CWid_t\fP,
+\f(CWimaxdiv_t\fP,
+\f(CWin_addr_t\fP,
+\f(CWin_port_t\fP,
+\f(CWkey_t\fP,
+\f(CWlconv\fP,
+\f(CWldiv_t\fP,
+\f(CWlldiv_t\fP,
+\f(CWlocale_t\fP,
+\f(CWlong_double_t\fP,
+\f(CWmbstate_t\fP,
+\f(CWmode_t\fP,
+\f(CWnfds_t\fP,
+\f(CWnlink_t\fP,
+\f(CWpid_t\fP,
+\f(CWposix_spawnattr_t\fP,
+\f(CWposix_spawn_file_actions_t\fP,
+\f(CWptrdiff_t\fP,
+\f(CWregex_t\fP,
+\f(CWregmatch_t\fP,
+\f(CWregoff_t\fP,
+\f(CWrlim_t\fP,
+\f(CWsa_family_t\fP,
+\f(CWsig_atomic_t\fP,
+\f(CWsighandler_t\fP,
+\f(CWsigset_t\fP,
+\f(CWsig_t\fP,
+\f(CWsize_t\fP,
+\f(CWsocklen_t\fP,
+\f(CWssize_t\fP,
+\f(CWsuseconds_t\fP,
+\f(CWtimer_r\fP,
+\f(CWuid_t\fP,
+\f(CWuseconds_t\fP,
+\f(CWva_list\fP,
+.P
+\f(CW_Decimal32\fP,
+\f(CW_Decimal32_t\fP,
+\f(CW_Decimal64\fP,
+\f(CW_Decimal64_t\fP,
+\f(CW_Decimal64x\fP,
+\f(CW_Decimal128\fP,
+\f(CW_Decimal128_t\fP,
+\f(CW_Decimal128x\fP,
+.P
+\f(CW_Float16\fP,
+\f(CW_Float16_t\fP,
+\f(CW_Float32\fP,
+\f(CW_Float32_t\fP,
+\f(CW_Float32x\fP,
+\f(CW_Float64\fP,
+\f(CW_Float64_t\fP,
+\f(CW_Float64x\fP,
+\f(CW_Float128\fP,
+\f(CW_Float128_t\fP,
+\f(CW_Float128x\fP
+.hy
+.ad
+.SS C95
+.na
+.nh
+\f(CWpthread_t\fP,
+\f(CWpthread_barrier_t\fP,
+\f(CWpthread_barrierattr_t\fP,
+\f(CWpthread_cond_t\fP,
+\f(CWpthread_condattr_t\fP,
+\f(CWpthread_key_t\fP,
+\f(CWpthread_mutex_t\fP,
+\f(CWpthread_mutexattr_t\fP,
+\f(CWpthread_once_t\fP,
+\f(CWpthread_rwlock_t\fP,
+\f(CWpthread_rwlockattr_t\fP,
+\f(CWpthread_spinlock_t\fP,
+\f(CWwctrans_t\fP,
+\f(CWwctype_t\fP,
+\f(CWwint_t\fP,
+.P
+\f(CW__float80\fP,
+\f(CW__float128\fP,
+\f(CW__fp16\fP,
+\f(CW__ibm128\fP,
+\f(CW__int128\fP,
+\f(CW__m128\fP,
+\f(CW__m128d\fP,
+\f(CW__m128i\fP,
+\f(CW__m64\fP,
+.P
+\f(CWATOM\fP,
+\f(CWBOOL\fP,
+\f(CWBOOLEAN\fP,
+\f(CWBYTE\fP,
+\f(CWCCHAR\fP,
+\f(CWCHAR\fP,
+\f(CWCOLORREF\fP,
+\f(CWDWORD\fP,
+\f(CWDWORD32\fP,
+\f(CWDWORD64\fP,
+\f(CWDWORDLONG\fP,
+\f(CWDWORD_PTR\fP,
+\f(CWFLOAT\fP,
+\f(CWHALF_PTR\fP,
+\f(CWHANDLE\fP,
+\f(CWHBITMAP\fP,
+\f(CWHBRUSH\fP,
+\f(CWHCOLORSPACE\fP,
+\f(CWHCONV\fP,
+\f(CWHCONVLIST\fP,
+\f(CWHCURSOR\fP,
+\f(CWHDC\fP,
+\f(CWHDDEDATA\fP,
+\f(CWHDESK\fP,
+\f(CWHDROP\fP,
+\f(CWHDWP\fP,
+\f(CWHENHMETAFILE\fP,
+\f(CWHFILE\fP,
+\f(CWHFONT\fP,
+\f(CWHGDIOBJ\fP,
+\f(CWHGLOBAL\fP,
+\f(CWHHOOK\fP,
+\f(CWHICON\fP,
+\f(CWHINSTANCE\fP,
+\f(CWHKEY\fP,
+\f(CWHKL\fP,
+\f(CWHLOCAL\fP,
+\f(CWHMENU\fP,
+\f(CWHMETAFILE\fP,
+\f(CWHMODULE\fP,
+\f(CWHMONITOR\fP,
+\f(CWHPALETTE\fP,
+\f(CWHPEN\fP,
+\f(CWHRESULT\fP,
+\f(CWHRGN\fP,
+\f(CWHRSRC\fP,
+\f(CWHSZ\fP,
+\f(CWHWINSTA\fP,
+\f(CWHWND\fP,
+\f(CWINT\fP,
+\f(CW_int8\fP,
+\f(CW_int16\fP,
+\f(CW_int32\fP,
+\f(CW_int64\fP,
+\f(CW__int8\fP,
+\f(CW__int16\fP,
+\f(CW__int32\fP,
+\f(CW__int64\fP,
+\f(CWINT_PTR\fP,
+\f(CWLANGID\fP,
+\f(CWLARGE_INTEGER\fP,
+\f(CWLCID\fP,
+\f(CWLCTYPE\fP,
+\f(CWLGRPID\fP,
+\f(CWLONG\fP,
+\f(CWLONG32\fP,
+\f(CWLONG64\fP,
+\f(CWLONGLONG\fP,
+\f(CWLONG_PTR\fP,
+\f(CWLPBOOL\fP,
+\f(CWLPBYTE\fP,
+\f(CWLPCHAR\fP,
+\f(CWLPCOLORREF\fP,
+\f(CWLPCSTR\fP,
+\f(CWLPCTSTR\fP,
+\f(CWLPCVOID\fP,
+\f(CWLPCWSTR\fP,
+\f(CWLPDWORD\fP,
+\f(CWLPHANDLE\fP,
+\f(CWLPINT\fP,
+\f(CWLPLONG\fP,
+\f(CWLPSTR\fP,
+\f(CWLPTSTR\fP,
+\f(CWLPVOID\fP,
+\f(CWLPWORD\fP,
+\f(CWLPWSTR\fP,
+\f(CWLRESULT\fP,
+\f(CWPBOOL\fP,
+\f(CWPBOOLEAN\fP,
+\f(CWPBYTE\fP,
+\f(CWPCHAR\fP,
+\f(CWPCSTR\fP,
+\f(CWPCTSTR\fP,
+\f(CWPCWSTR\fP,
+\f(CWPDWORD\fP,
+\f(CWPDWORD32\fP,
+\f(CWPDWORD64\fP,
+\f(CWPDWORDLONG\fP,
+\f(CWPDWORD_PTR\fP,
+\f(CWPFLOAT\fP,
+\f(CWPHALF_PTR\fP,
+\f(CWPHANDLE\fP,
+\f(CWPHKEY\fP,
+\f(CWPINT\fP,
+\f(CWPINT16\fP,
+\f(CWPINT32\fP,
+\f(CWPINT64\fP,
+\f(CWPINT8\fP,
+\f(CWPINT_PTR\fP,
+\f(CWPLCID\fP,
+\f(CWPLONG\fP,
+\f(CWPLONG32\fP,
+\f(CWPLONG64\fP,
+\f(CWPLONGLONG\fP,
+\f(CWPLONG_PTR\fP,
+\f(CWPSHORT\fP,
+\f(CWPSIZE_T\fP,
+\f(CWPSSIZE_T\fP,
+\f(CWPSTR\fP,
+\f(CWPTBYTE\fP,
+\f(CWPTCHAR\fP,
+\f(CWPTSTR\fP,
+\f(CWPUCHAR\fP,
+\f(CWPUHALF_PTR\fP,
+\f(CWPUINT\fP,
+\f(CWPUINT16\fP,
+\f(CWPUINT32\fP,
+\f(CWPUINT64\fP,
+\f(CWPUINT8\fP,
+\f(CWPUINT_PTR\fP,
+\f(CWPULONG\fP,
+\f(CWPULONG32\fP,
+\f(CWPULONG64\fP,
+\f(CWPULONGLONG\fP,
+\f(CWPULONG_PTR\fP,
+\f(CWPUSHORT\fP,
+\f(CWPVOID\fP,
+\f(CWPWCHAR\fP,
+\f(CWPWORD\fP,
+\f(CWPWSTR\fP,
+\f(CWQWORD\fP,
+\f(CWSC_HANDLE\fP,
+\f(CWSC_LOCK\fP,
+\f(CWSERVICE_STATUS_HANDLE\fP,
+\f(CWSHORT\fP,
+\f(CWSIZE_T\fP,
+\f(CWSSIZE_T\fP,
+\f(CWTBYTE\fP,
+\f(CWTCHAR\fP,
+\f(CWUCHAR\fP,
+\f(CWUHALF_PTR\fP,
+\f(CWUINT\fP,
+\f(CWUINT16\fP,
+\f(CWUINT32\fP,
+\f(CWUINT64\fP,
+\f(CWUINT8\fP,
+\f(CWUINT_PTR\fP,
+\f(CWULARGE_INTEGER\fP,
+\f(CWULONG\fP,
+\f(CWULONG32\fP,
+\f(CWULONG64\fP,
+\f(CWULONGLONG\fP,
+\f(CWULONG_PTR\fP,
+\f(CWUNICODE_STRING\fP,
+\f(CWUSHORT\fP,
+\f(CWUSN\fP,
+\f(CWWCHAR\fP,
+\f(CW__wchar_t\fP,
+\f(CWWORD\fP,
+\f(CWWPARAM\fP
+.hy
+.ad
+.SS C99
+.na
+.nh
+\f(CWint8_t\fP,
+\f(CWint16_t\fP,
+\f(CWint32_t\fP,
+\f(CWint64_t\fP,
+\f(CWintmax_t\fP,
+\f(CWintptr_t\fP,
+\f(CWuint8_t\fP,
+\f(CWuint16_t\fP,
+\f(CWuint32_t\fP,
+\f(CWuint64_t\fP,
+\f(CWuintmax_t\fP,
+\f(CWuintptr_t\fP,
+.P
+\f(CWint_fast8_t\fP,
+\f(CWint_fast16_t\fP,
+\f(CWint_fast32_t\fP,
+\f(CWint_fast64_t\fP,
+\f(CWint_least8_t\fP,
+\f(CWint_least16_t\fP,
+\f(CWint_least32_t\fP,
+\f(CWint_least64_t\fP,
+\f(CWuint_fast8_t\fP,
+\f(CWuint_fast16_t\fP,
+\f(CWuint_fast32_t\fP,
+\f(CWuint_fast64_t\fP,
+\f(CWuint_least8_t\fP,
+\f(CWuint_least16_t\fP,
+\f(CWuint_least32_t\fP,
+\f(CWuint_least64_t\fP,
+.P
+\f(CWint_hk_t\fP,
+\f(CWint_hr_t\fP,
+\f(CWint_k_t\fP,
+\f(CWint_lk_t\fP,
+\f(CWint_lr_t\fP,
+\f(CWint_r_t\fP,
+\f(CWuint_uhk_t\fP,
+\f(CWuint_uhr_t\fP,
+\f(CWuint_uk_t\fP,
+\f(CWuint_ulk_t\fP,
+\f(CWuint_ulr_t\fP,
+\f(CWuint_ur_t\fP
+.hy
+.ad
+.SS C11
+.na
+.nh
+\f(CWatomic_bool\fP,
+\f(CWatomic_char16_t\fP,
+\f(CWatomic_char32_t\fP,
+\f(CWatomic_char\fP,
+\f(CWatomic_flag\fP,
+\f(CWatomic_int\fP,
+\f(CWatomic_intmax_t\fP,
+\f(CWatomic_intptr_t\fP,
+\f(CWatomic_llong\fP,
+\f(CWatomic_long\fP,
+\f(CWatomic_ptrdiff_t\fP,
+\f(CWatomic_schar\fP,
+\f(CWatomic_short\fP,
+\f(CWatomic_size_t\fP,
+\f(CWatomic_uchar\fP,
+\f(CWatomic_uint\fP,
+\f(CWatomic_uintmax_t\fP,
+\f(CWatomic_uintptr_t\fP,
+\f(CWatomic_ullong\fP,
+\f(CWatomic_ulong\fP,
+\f(CWatomic_ushort\fP,
+\f(CWatomic_wchar_t\fP,
+.P
+\f(CWatomic_int_fast8_t\fP,
+\f(CWatomic_int_fast16_t\fP,
+\f(CWatomic_int_fast32_t\fP,
+\f(CWatomic_int_fast64_t\fP,
+\f(CWatomic_int_least8_t\fP,
+\f(CWatomic_int_least16_t\fP,
+\f(CWatomic_int_least32_t\fP,
+\f(CWatomic_int_least64_t\fP,
+\f(CWatomic_uint_fast8_t\fP,
+\f(CWatomic_uint_fast16_t\fP,
+\f(CWatomic_uint_fast32_t\fP,
+\f(CWatomic_uint_fast64_t\fP,
+\f(CWatomic_uint_least8_t\fP,
+\f(CWatomic_uint_least16_t\fP,
+\f(CWatomic_uint_least32_t\fP,
+\f(CWatomic_uint_least64_t\fP,
+.P
+\f(CWcnd_t\fP,
+\f(CWconstraint_handler_t\fP,
+\f(CWmax_align_t\fP,
+\f(CWmemory_order\fP,
+\f(CWmtx_t\fP,
+\f(CWonce_flag\fP,
+\f(CWrsize_t\fP,
+\f(CWthrd_start_t\fP,
+\f(CWthrd_t\fP,
+\f(CWtss_dtor_t\fP,
+\f(CWtss_t\fP
+.hy
+.ad
+.SS C++98
+.na
+.nh
+\f(CWstd::bad_alloc\fP,
+\f(CWstd::bad_cast\fP,
+\f(CWstd::bad_exception\fP,
+\f(CWstd::bad_type_id\fP,
+\f(CWstd::codecvt_base\fP,
+\f(CWstd::ctype_base\fP,
+\f(CWstd::ctype_base::mask\fP,
+\f(CWstd::div_t\fP,
+\f(CWstd::domain_error\fP,
+\f(CWstd::exception\fP,
+\f(CWstd::filebuf\fP,
+\f(CWstd::fstream\fP,
+\f(CWstd::ifstream\fP,
+\f(CWstd::invalid_argument\fP,
+\f(CWstd::ios\fP,
+\f(CWstd::ios_base::Init\fP,
+\f(CWstd::ios_base::event\fP,
+\f(CWstd::ios_base::event_callback\fP,
+\f(CWstd::ios_base::fmtflags\fP,
+\f(CWstd::ios_base::iostate\fP,
+\f(CWstd::ios_base::openmode\fP,
+\f(CWstd::ios_base::seekdir\fP,
+\f(CWstd::ios_base\fP,
+\f(CWstd::iostream\fP,
+\f(CWstd::istream\fP,
+\f(CWstd::istringstream\fP,
+\f(CWstd::lconv\fP,
+\f(CWstd::ldiv_t\fP,
+\f(CWstd::length_error\fP,
+\f(CWstd::locale\fP,
+\f(CWstd::logic_error\fP,
+\f(CWstd::messages_base\fP,
+\f(CWstd::money_base\fP,
+\f(CWstd::new_handler\fP,
+\f(CWstd::nothrow_t\fP,
+\f(CWstd::ofstream\fP,
+\f(CWstd::ostream\fP,
+\f(CWstd::ostringstream\fP,
+\f(CWstd::osyncstream\fP,
+\f(CWstd::out_of_range\fP,
+\f(CWstd::overflow_error\fP,
+\f(CWstd::ptrdiff_t\fP,
+\f(CWstd::range_error\fP,
+\f(CWstd::runtime_error\fP,
+\f(CWstd::sig_atomic_t\fP,
+\f(CWstd::size_t\fP,
+\f(CWstd::streambuf\fP,
+\f(CWstd::streamoff\fP,
+\f(CWstd::streamsize\fP,
+\f(CWstd::string\fP,
+\f(CWstd::stringbuf\fP,
+\f(CWstd::stringstream\fP,
+\f(CWstd::syncbuf\fP,
+\f(CWstd::time_base\fP,
+\f(CWstd::tm\fP,
+\f(CWstd::underflow_error\fP,
+\f(CWstd::wfilebuf\fP,
+\f(CWstd::wfstream\fP,
+\f(CWstd::wifstream\fP,
+\f(CWstd::wios\fP,
+\f(CWstd::wiostream\fP,
+\f(CWstd::wistream\fP,
+\f(CWstd::wistringstream\fP,
+\f(CWstd::wofstream\fP,
+\f(CWstd::wostream\fP,
+\f(CWstd::wostringstream\fP,
+\f(CWstd::wosyncstream\fP,
+\f(CWstd::wstreambuf\fP,
+\f(CWstd::wstring\fP,
+\f(CWstd::wstringbuf\fP,
+\f(CWstd::wstringstream\fP,
+\f(CWstd::wsyncbuf\fP
+.hy
+.ad
+.SS C++11
+.na
+.nh
+\f(CWstd::atomic_bool\fP,
+\f(CWstd::atomic_char16_t\fP,
+\f(CWstd::atomic_char32_t\fP,
+\f(CWstd::atomic_char8_t\fP,
+\f(CWstd::atomic_char\fP,
+\f(CWstd::atomic_flag\fP,
+\f(CWstd::atomic_int16_t\fP,
+\f(CWstd::atomic_int32_t\fP,
+\f(CWstd::atomic_int64_t\fP,
+\f(CWstd::atomic_int8_t\fP,
+\f(CWstd::atomic_int_fast16_t\fP,
+\f(CWstd::atomic_int_fast32_t\fP,
+\f(CWstd::atomic_int_fast64_t\fP,
+\f(CWstd::atomic_int_fast8_t\fP,
+\f(CWstd::atomic_int\fP,
+\f(CWstd::atomic_int_least16_t\fP,
+\f(CWstd::atomic_int_least32_t\fP,
+\f(CWstd::atomic_int_least64_t\fP,
+\f(CWstd::atomic_int_least8_t\fP,
+\f(CWstd::atomic_intmax_t\fP,
+\f(CWstd::atomic_intptr_t\fP,
+\f(CWstd::atomic_llong\fP,
+\f(CWstd::atomic_long\fP,
+\f(CWstd::atomic_ptrdiff_t\fP,
+\f(CWstd::atomic_schar\fP,
+\f(CWstd::atomic_short\fP,
+\f(CWstd::atomic_signed_lock_free\fP,
+\f(CWstd::atomic_size_t\fP,
+\f(CWstd::atomic_uchar\fP,
+\f(CWstd::atomic_uint16_t\fP,
+\f(CWstd::atomic_uint32_t\fP,
+\f(CWstd::atomic_uint64_t\fP,
+\f(CWstd::atomic_uint8_t\fP,
+\f(CWstd::atomic_uint_fast16_t\fP,
+\f(CWstd::atomic_uint_fast32_t\fP,
+\f(CWstd::atomic_uint_fast64_t\fP,
+\f(CWstd::atomic_uint_fast8_t\fP,
+\f(CWstd::atomic_uint\fP,
+\f(CWstd::atomic_uint_least16_t\fP,
+\f(CWstd::atomic_uint_least32_t\fP,
+\f(CWstd::atomic_uint_least64_t\fP,
+\f(CWstd::atomic_uint_least8_t\fP,
+\f(CWstd::atomic_uintmax_t\fP,
+\f(CWstd::atomic_uintptr_t\fP,
+\f(CWstd::atomic_ullong\fP,
+\f(CWstd::atomic_ulong\fP,
+\f(CWstd::atomic_unsigned_lock_free\fP,
+\f(CWstd::atomic_ushort\fP,
+\f(CWstd::atomic_wchar_t\fP,
+.P
+\f(CWstd::adopt_lock_t\fP,
+\f(CWstd::allocator_arg_t\fP,
+\f(CWstd::bad_array_new_length\fP,
+\f(CWstd::bad_function_call\fP,
+\f(CWstd::bad_weak_ptr\fP,
+\f(CWstd::bernoulli_distribution\fP,
+\f(CWstd::chrono::high_resolution_clock\fP,
+\f(CWstd::chrono::steady_clock\fP,
+\f(CWstd::condition_variable\fP,
+\f(CWstd::condition_variable_any\fP,
+\f(CWstd::cv_status\fP,
+\f(CWstd::defer_lock_t\fP,
+\f(CWstd::error_category\fP,
+\f(CWstd::error_code\fP,
+\f(CWstd::error_condition\fP,
+\f(CWstd::future_errc\fP,
+\f(CWstd::future_error\fP,
+\f(CWstd::future_status\fP,
+\f(CWstd::imaxdiv_t\fP,
+\f(CWstd::ios_base::failure\fP,
+\f(CWstd::launch\fP,
+\f(CWstd::lldiv_t\fP,
+\f(CWstd::max_align_t\fP,
+\f(CWstd::mutex\fP,
+\f(CWstd::nullptr_t\fP,
+\f(CWstd::random_device\fP,
+\f(CWstd::recursive_mutex\fP,
+\f(CWstd::recursive_timed_mutex\fP,
+\f(CWstd::regex\fP,
+\f(CWstd::regex_constants::error_type\fP,
+\f(CWstd::regex_constants::match_flag_type\fP,
+\f(CWstd::regex_constants::syntax_option_type\fP,
+\f(CWstd::regex_error\fP,
+\f(CWstd::shared_mutex\fP,
+\f(CWstd::shared_timed_mutex\fP,
+\f(CWstd::system_error\fP,
+\f(CWstd::thread\fP,
+\f(CWstd::timed_mutex\fP,
+\f(CWstd::try_to_lock_t\fP,
+\f(CWstd::u32string\fP,
+\f(CWstd::u32string_view\fP,
+\f(CWstd::wregex\fP
+.hy
+.ad
+.SS C++17
+.na
+.nh
+\f(CWstd::align_val_t\fP,
+\f(CWstd::any\fP,
+\f(CWstd::bad_any_cast\fP,
+\f(CWstd::bad_optional_access\fP,
+\f(CWstd::bad_variant_access\fP,
+\f(CWstd::byte\fP,
+\f(CWstd::chars_format\fP,
+\f(CWstd::from_chars_result\fP,
+\f(CWstd::memory_resource\fP,
+\f(CWstd::mono_state\fP,
+\f(CWstd::string_view\fP,
+\f(CWstd::to_chars_result\fP,
+\f(CWstd::u16string\fP,
+\f(CWstd::u16string_view\fP,
+\f(CWstd::wstring_view\fP,
+.P
+\f(CWstd::filesystem::copy_options\fP,
+\f(CWstd::filesystem::directory_entry\fP,
+\f(CWstd::filesystem::directory_iterator\fP,
+\f(CWstd::filesystem::directory_options\fP,
+\f(CWstd::filesystem::file_status\fP,
+\f(CWstd::filesystem::file_type\fP,
+\f(CWstd::filesystem::filesystem_error\fP,
+\f(CWstd::filesystem::path\fP,
+\f(CWstd::filesystem::perm_options\fP,
+\f(CWstd::filesystem::perms\fP,
+\f(CWstd::filesystem::recursive_directory_iterator\fP,
+\f(CWstd::filesystem::space_info\fP,
+.P
+\f(CWstd::pmr::memory_resource\fP
+\f(CWstd::pmr::monotonic_buffer_resource\fP
+\f(CWstd::pmr::pool_options\fP
+\f(CWstd::pmr::synchronized_pool_resource\fP
+\f(CWstd::pmr::unsynchronized_pool_resource\fP
+.hy
+.ad
+.SS C++20
+.na
+.nh
+\f(CWstd::ambiguous_local_time\fP,
+\f(CWstd::compare_three_way\fP,
+\f(CWstd::endian\fP,
+\f(CWstd::latch\fP,
+\f(CWstd::noop_coroutine_promise\fP,
+\f(CWstd::strong_equality\fP,
+\f(CWstd::strong_ordering\fP,
+\f(CWstd::suspend_always\fP,
+\f(CWstd::suspend_never\fP,
+\f(CWstd::nonstopstate_t\fP,
+\f(CWstd::weak_equality\fP,
+\f(CWstd::stop_source\fP,
+\f(CWstd::stop_token\fP,
+\f(CWstd::destroying_delete_t\fP,
+\f(CWstd::format_error\fP,
+\f(CWstd::jthread\fP,
+\f(CWstd::partial_ordering\fP,
+\f(CWstd::u8string_view\fP,
+\f(CWstd::weak_ordering\fP,
+.P
+\f(CWstd::chrono::choose\fP,
+\f(CWstd::chrono::day\fP,
+\f(CWstd::chrono::file_clock\fP,
+\f(CWstd::chrono::gps_clock\fP,
+\f(CWstd::chrono::is_clock\fP,
+\f(CWstd::chrono::last_spec\fP,
+\f(CWstd::chrono::leap_second\fP,
+\f(CWstd::chrono::local_info\fP,
+\f(CWstd::chrono::local_t\fP,
+\f(CWstd::chrono::month\fP,
+\f(CWstd::chrono::month_day\fP,
+\f(CWstd::chrono::month_day_last\fP,
+\f(CWstd::chrono::month_weekday\fP,
+\f(CWstd::chrono::month_weekday_last\fP,
+\f(CWstd::chrono::nonexistent_local_time\fP,
+\f(CWstd::chrono::sys_info\fP,
+\f(CWstd::chrono::system_clock\fP,
+\f(CWstd::chrono::tai_clock\fP,
+\f(CWstd::chrono::time_zone\fP,
+\f(CWstd::chrono::time_zone_link\fP,
+\f(CWstd::chrono::tzdb\fP,
+\f(CWstd::chrono::tzdb_list\fP,
+\f(CWstd::chrono::utc_clock\fP,
+\f(CWstd::chrono::weekday\fP,
+\f(CWstd::chrono::weekday_indexed\fP,
+\f(CWstd::chrono::weekday_last\fP,
+\f(CWstd::chrono::year\fP,
+\f(CWstd::chrono::year_month\fP,
+\f(CWstd::chrono::year_month_day\fP,
+\f(CWstd::chrono::year_month_day_last\fP,
+\f(CWstd::chrono::year_month_weekday\fP,
+\f(CWstd::chrono::year_month_weekday_last\fP
+.hy
+.ad
+.SS C++23
+.na
+.nh
+\f(CWstd::bfloat16_t\fP,
+\f(CWstd::float128_t\fP,
+\f(CWstd::float16_t\fP,
+\f(CWstd::float32_t\fP,
+\f(CWstd::float64_t\fP,
+\f(CWstd::ispanstream\fP,
+\f(CWstd::ospanstream\fP,
+\f(CWstd::range_format\fP,
+\f(CWstd::spanbuf\fP,
+\f(CWstd::spanstream\fP,
+\f(CWstd::stacktrace\fP,
+\f(CWstd::stacktrace_entry\fP,
+\f(CWstd::unexpect_t\fP,
+\f(CWstd::wispanstream\fP
+\f(CWstd::wospanstream\fP,
+\f(CWstd::wspanbuf\fP,
+\f(CWstd::wspanstream\fP
+.hy
+.ad
+.SH PREDEFINED MACROS
+The following macros are predefined
+in the specified language and later.
+.SS C89
+.TP 13
+.B __DATE__
+The local date
+in the form \f(CW"Mmm dd yyyy"\fP.
+.TP
+.B __FILE__
+The current file name,
+if any,
+or \f(CW"stdin"\fP.
+.TP
+.B __LINE__
+The current line number within \f(CW__FILE__\fP,
+if any,
+or an arbitrary line number.
+.TP
+.B __STDC__
+\f(CW1\fP.
+(Not defined in C++.)
+.TP
+.B __STDC_VERSION__
+The current C version,
+e.g., \f(CW202311L\fP for C23.
+(Not defined in C++.)
+.TP
+.B __TIME__
+The local time
+in the form \f(CW"hh:mm:ss"\fP.
+.SS C99
+.TP 13
+.B __VA_ARGS__
+The variable arguments of a macro,
+if any.
+.SS C++
+.TP 13
+.B __cplusplus
+The current C++ version
+e.g., \f(CW202302L\fP for C++23.
+(Not defined in C.)
+.SS C23 | C++20
+.TP 13
+.B __VA_OPT__
+Optional preprocessor tokens
+enclosed between parentheses.
+.SH NOTES
+.SS main()
+In C,
+a function named \f(CWmain\fP
+has its parameters
+and return type
+checked for those required by \f(CWmain\fP;
+in C++,
+this occurs only if it is
+.I not
+declared
+\f(CWconst\fP,
+\f(CWconsteval\fP,
+\f(CWconstexpr\fP,
+\f(CWdefault\fP,
+\f(CWdelete\fP,
+\f(CWfinal\fP,
+\f(CWinline\fP,
+\f(CWoverride\fP,
+\f(CW__restrict\fP,
+\f(CWstatic\fP,
+\f(CWvirtual\fP,
+nor
+\f(CWvolatile\fP.
+If it is so declared,
+it's assumed to be a member function.
+.SS Permissive Types
+Permissive types
+via the
+.B \-\-permissive-types
+or
+.B \-p
+option
+is not the default
+because always permitting keywords in language versions
+other than the current language
+as types
+can result in confusing errors.
+For example,
+if permissive types were the default,
+then you would get the following in C:
+.cS
+cdecl> declare D as virtual destructor
+                    ^
+14: warning: "virtual" is a keyword in C++
+virtual D;
+                            ^
+22: syntax error: "destructor": unexpected token ...
+.cE
+Here,
+\f(CWvirtual\fP,
+not being a keyword in C
+and therefore a valid name for a user-defined type,
+would be taken to be a type name,
+so
+.B cdecl
+would interpret that to mean
+you want to declare \f(CWD\fP
+as a variable of type \f(CWvirtual\fP
+\(em and
+.B cdecl
+would do so
+by printing \f(CWvirtual D\fP
+(but still warning that \f(CWvirtual\fP is a keyword in C++).
+But then \f(CWdestructor\fP would be unexpectedly encountered
+and generate an error.
+(It could easily be the case
+that you simply forgot to set the current language to C++
+instead of C.)
+.P
+With the default non-permissive behavior,
+you instead get:
+.cS
+cdecl> declare D as virtual destructor
+                    ^
+14: error: "virtual": unsupported keyword in C
+.cE
+which is clearer,
+but at the cost of not permitting valid declarations
+that use or keywords in language versions
+other than the current language
+as types.
+.SH CONFIGURATION FILES
+.SS cdeclrc
+The
+.B cdeclrc
+file is used to configure
+.B cdecl
+by executing the contained commands
+on start-up
+(unless either the
+.B \-\-no-config
+or
+.B \-C
+option is given).
+The full path of this file can be specified by either the
+.B \-\-config
+or
+.B \-c
+option;
+or,
+if not,
+the path is taken from the value of the
+.B CDECLRC
+environment variable
+unless it is either unset or empty
+in which case the path defaults to
+.BR ~/.cdeclrc .
+.PP
+The commands useful within a configuration file are:
+.IP \(bu 3
+.BR class ,
+.BR define ,
+.BR enum ,
+.BR namespace ,
+.BR struct ,
+.BR typedef ,
+.BR union ,
+or
+.B using
+to pre-define user-specific types
+so that they may be subsequently used
+when either composing or deciphering declarations.
+.IP \(bu
+.BR #define
+to pre-define macros
+so that they may be subsequently expanded.
+.IP \(bu
+.B include
+to include other configuration files.
+.IP \(bu
+.B set
+to set the language
+or other options
+initially.
+.P
+Configuration files may include
+blank lines,
+C-style \f(CW/*\fP\ \f(CW*/\fP comments,
+and
+C++-style \f(CW//\fP comments,
+all of which are ignored.
+.SH EXAMPLES
+.SS C Declarations
+To declare an array of pointers to functions that are like
+.BR malloc (3):
+.cS
+cdecl> declare fptab as array of pointer to function \\
+cdecl+     returning pointer to void
+void *(*fptab[])();
+.cE
+When you see this declaration in someone else's code,
+you can make sense out of it by doing:
+.cS
+cdecl> explain void *(*fptab[])()
+.cE
+The function prototype for a function such as
+.BR _exit (2)
+would be declared with:
+.cS
+cdecl> declare _exit as function (retval as int) returning void
+void _exit(int retval);
+.cE
+As a more complex example,
+.BR signal (2)
+would be fully defined as:
+.cS
+cdecl> declare signal as function \\
+cdecl+     (sig as int, \\
+cdecl+      f as pointer to function (int) returning void) \\
+cdecl+     returning pointer to function (int) returning void
+void (*signal(int sig, void (*f)(int)))(int);
+.cE
+This is made more comprehensible with one of
+.BR define ,
+.BR typedef ,
+or
+.BR using :
+.cS
+cdecl> define pfi_v as pointer to function (int) returning void
+cdecl> declare signal as function \\
+cdecl+     (sig as int, f as pfi_v) returning pfi_v
+pfi_v signal(int sig, pfi_v f);
+.cE
+.B cdecl
+can help figure out where to put
+\f(CWconst\fP and \f(CWvolatile\fP qualifiers:
+.cS
+cdecl> declare pci as pointer to const int
+const int *pci;
+
+cdecl> declare cpi as const pointer to int
+int *const cpi;
+.cE 0
+.SS C++ Declarations
+.B c++decl
+can help with declaring references:
+.cS
+c++decl> declare rpc as reference to pointer to char
+char *&rpc;
+.cE
+.B c++decl
+can help with pointers to member of classes:
+.cS
+c++decl> declare p as pointer to member of class C int
+int C::*p;
+.cE
+and:
+.cS
+c++decl> declare p as pointer to member of class C \\
+c++decl+     function (i as int, j as int) \\
+c++decl+     returning pointer to class D
+D *(C::*p)(int i, int j)
+.cE
+To define types within scopes:
+.cS
+c++decl> define A::B::T1 as int
+c++decl> define T2 of scope A as int
+c++decl> define T3 of scope B of scope A as int
+c++decl> define T4 of scope A::B as int
+c++decl> define T5 of class C::D as int
+c++decl> class C { typedef int T; }
+c++decl> class C1 { class C2 { typedef int T; }; }
+c++decl> struct S { typedef int T; }
+c++decl> namespace N { typedef int T; }
+c++decl> namespace N::M { typedef int T; }
+c++decl> union U { typedef int T; }
+.cE 0
+.SS Preprocessor Macros
+.B cdecl
+can help with understanding how macros expand:
+.cS
+cdecl> #define NAME2_HELPER(A,B)        A ## B
+cdecl> #define NAME2(A,B)               NAME2_HELPER(A,B)
+cdecl> expand NAME2(var_, __LINE__)
+NAME2(var_, __LINE__) => NAME2_HELPER(A,B)
+| A => var_
+| B => __LINE__
+| | __LINE__ => 42
+| B => 42
+NAME2(var_, 42) => NAME2_HELPER(var_,42)
+| NAME2_HELPER(var_, 42) => A ## B
+| NAME2_HELPER(var_, 42) => var_ ## 42
+| NAME2_HELPER(var_, 42) => var_42
+NAME2(var_, 42) => var_42
+.cE 0
+.SH EXIT STATUS
+.PD 0
+.IP 0
+Success.
+.IP 64
+Command-line usage error.
+.IP 65
+Syntax or semantic error.
+.IP 66
+Open file error.
+.IP 69
+System resource unavailable.
+.IP 70
+Internal software error.
+(Please report the bug.)
+.IP 71
+System error.
+.IP 73
+Create file error.
+.IP 74
+I/O error.
+.PD
+.SH ENVIRONMENT
+.TP 6
+.B CDECL_COLORS
+This variable specifies the colors and other attributes
+used to highlight various parts of the output
+in a manner similar to the
+.B GCC_COLORS
+variable
+used by
+.BR gcc .
+.IP
+As with
+.BR gcc ,
+the value is composed of a colon-separated sequence of capabilities.
+Each capability is of the form
+.IR name [= SGR ]
+where
+.I name
+is a capability name
+and
+.IR SGR ,
+if present,
+is a
+``Select Graphic Rendition''
+value
+that is a semicolon-separated list of integers
+in the range 0\-255.
+An example SGR value is \f(CW31;1\fP
+that specifies a bright red foreground
+on the terminal's default background.
+.IP
+Capability names containing upper-case letters are unique to
+.BR cdecl ;
+those in all lower-case are upwards compatibile with
+.BR gcc .
+.RS
+.TP 21
+.BI caret= SGR
+SGR for the caret pointing to the error on the line above
+(as with
+.BR gcc ).
+The default is \f(CW32;1\fP
+(bright green foreground over current terminal background).
+.TP
+.BI error= SGR
+SGR for the word ``error.''
+The default is \f(CW31;1\fP
+(bright red foreground over current terminal background).
+.TP
+.BI HELP-keyword= SGR
+SGR for keywords in help output.
+The default is \f(CW1\fP
+(bold terminal foreground over current terminal background).
+.TP
+.BI HELP-nonterm= SGR
+SGR for nonterminals in help output.
+The default is \f(CW36\fP
+(cyan foreground over current terminal background).
+.TP
+.BI HELP-punct= SGR
+SGR for punctuation in help output.
+The default is \f(CW30;1\fP
+(dark dray forgreound over current terminal background).
+.TP
+.BI HELP-title= SGR
+SGR for titles in help output.
+The default is \f(CW34;1\fP
+(bright blue foreground over current terminal background).
+.TP
+.BI locus= SGR
+SGR for location information in error and warning messages.
+The default is \f(CW1\fP
+(bold current foreground over current terminal background).
+.TP
+.BI MACRO-no-expand= SGR
+SGR for a macro that can not expand.
+The default is \f(CW35\fP
+(magenta foreground over current terminal background).
+.TP
+.BI MACRO-punct= SGR
+SGR for macro expansion punctuation.
+The default is \f(CW32;1\fP
+(bright green foreground over current terminal background).
+.TP
+.BI MACRO-subst= SGR
+SGR for macro substituted tokens.
+The default is \f(CW36\fP
+(cyan foreground over current terminal background).
+.TP
+.BI PROMPT= SGR
+SGR for the prompt.
+The default is \f(CW32\fP
+(green foreground over current terminal background).
+.TP
+.BI warning= SGR
+SGR for the word ``warning.''
+The default is \f(CW33;1\fP
+(bright yellow foreground over current terminal background).
+.RE
+.IP
+The term ``color'' is used loosely.
+In addition to colors,
+other character attributes
+such as bold, underlined, reverse video, etc.,
+may be possible depending on the capabilities of the terminal.
+.TP
+.B CDECL_DEBUG
+If set to an ``affirmative'' value
+(one of
+.BR 1 ,
+.BR t ,
+.BR true ,
+.BR y ,
+or
+.BR yes ,
+case-insensitive),
+then
+.B cdecl
+will print its process ID
+and a ``waiting for debugger to attach'' message
+to standard error
+and wait indefinitely for a debugger to attach.
+(This is a debugging aid for developers of
+.B cdecl
+itself.)
+It is enabled only when
+.B cdecl
+was compiled with
+.B NDEBUG
+.I not
+defined.
+.TP
+.B CDECL_TEST
+If set to an ``affirmative'' value
+(one of
+.BR 1 ,
+.BR t ,
+.BR true ,
+.BR y ,
+or
+.BR yes ,
+case-insensitive),
+then
+.B cdecl
+will (not) do the following to facilitate testing:
+.RS 6
+.IP \(bu 3
+Not read any
+.B cdeclrc
+file
+unless specified explicitly
+via either the
+.B \-\-config
+or
+.B \-c
+option.
+.IP \(bu
+Use 80 for the number of columns of the terminal
+ignoring its actual width
+and the
+.B COLUMNS
+variable.
+.IP \(bu
+Use constant values
+for the
+.BR __DATE__ ,
+.BR __FILE__ ,
+.BR __LINE__ ,
+and
+.B __TIME__
+macros.
+.RE
+.TP
+.B CDECLRC
+The full path to the user-specific configuration file
+(see
+.BR "CONFIGURATION FILES" ).
+Used only if not empty
+and none of the
+.BR \-\-config ,
+.BR \-c ,
+.BR \-\-no-config ,
+or
+.B \-C
+options are given.
+.TP
+.B COLUMNS
+The number of columns of the terminal on which
+.B cdecl
+is being run.
+Used to get the terminal's width
+for limiting error and warning messages' length.
+Takes precedence over the number of columns specified by the
+.B TERM
+variable.
+.TP
+.B HOME
+The user's home directory:
+used to locate the default configuration file.
+If unset,
+the home directory is obtained from the password database entry
+for the effective user.
+If that fails,
+no default configuration file is read.
+.TP
+.B TERM
+The type of the terminal on which
+.B cdecl
+is being run.
+.SH FILES
+.TP 4
+.B ~/.cdeclrc
+The default
+.B cdecl
+configuration file
+(see
+.BR "CONFIGURATION FILES" ).
+.TP
+.B ~/.editrc
+Individual
+.BR editline (3)
+initialization file.
+On systems where the
+.BR readline (3)
+API is provided
+but is just a wrapper around
+.B libedit
+(e.g.,
+.BR macOS ),
+the
+.B ~/.editrc
+file,
+if present,
+is read instead of
+.BR ~/.inputrc .
+If present,
+add the following (undocumented) command:
+.RS
+.cS
+bind ^I rl_complete
+.cE 0
+.RE
+.IP
+to make tab-completion work in
+.BR cdecl .
+.TP
+.B ~/.inputrc
+Individual
+.BR readline (3)
+initialization file.
+.SH BUGS
+.SS Readline Wrapper Around Editline
+On systems where the
+.BR readline (3)
+API is provided
+but is just a wrapper
+around the Editline Library,
+(e.g.,
+.BR macOS ),
+there are a few issues:
+.IP \(bu 3
+The wrapper has a bug that prevents color prompts from working correctly.
+Therefore,
+the
+.B PROMPT
+color cabapility is ignored on systems
+that do not provide genuine GNU
+.BR readline (3).
+.IP \(bu
+Hitting
+.I tab
+when there are no completion matches
+ordinarily rings the terminal's bell.
+However,
+older versions of the wrapper
+don't provide the \f(CWrl_ding()\fP function
+needed to ring the bell
+so
+.B cdecl
+provides a substitute.
+However,
+the substitute doesn't respect the user's preferred bell style
+(none, audible, or visual)
+and always does an audible bell.
+.IP \(bu
+In some cases,
+hitting
+.I tab
+causes the wrapper
+to suggest only a single completion
+rather than simply inserting it.
+.P
+To avoid these issues,
+compile
+.B cdecl
+against the genuine GNU Readline Library.
+.SS See Also
+.nh
+\f(CWhttps://github.com/paul-j-lucas/cdecl/issues\fP
+.hy
+.SH CAVEATS
+.SS Unsupported Declarations
+The following types of declarations are not currently supported:
+.IP \(bu 3
+Only
+\f(CWenum\fP,
+\f(CWclass\fP,
+\f(CWstruct\fP,
+and
+\f(CWunion\fP
+names and scoped type declarations are supported;
+complete declarations are not:
+.RS
+.cS
+struct S s;                     // supported
+struct S { typedef int Int; };  // supported (C++ only)
+struct S { int i; char c; } s;  // not supported
+.cE 0
+.RE
+.IP \(bu
+For array sizes,
+only integer literals,
+names,
+and \f(CW*\fP
+are supported;
+arbitrary expressions are not.
+.IP \(bu
+In C23 and later,
+\f(CWauto\fP
+as a storage-class specifier
+is no longer supported.
+.IP \(bu
+For C23
+\f(CWtypeof\fP
+and
+\f(CWtypeof_unqual\fP
+declarations,
+only types are supported;
+arbitrary expressions are not:
+.RS
+.cS
+typeof(int*) x                  // supported
+typeof(x) y                     // not supported
+.cE 0
+.RE
+.IP \(bu
+Only C++ lambda signature declarations are supported;
+complete lambda declarations are not:
+.RS
+.cS
+[n](int x)                      // supported
+[n](int x) { return n * x; }    // not supported
+.cE 0
+.RE
+.IP \(bu
+C++
+\f(CWdecltype\fP,
+abbreviated function template,
+default argument,
+and
+template
+declarations are not supported.
+.IP \(bu
+For C++ function exception specifications,
+only
+\f(CWnoexcept\fP,
+\f(CWnoexcept(true)\fP,
+\f(CWnoexcept(false)\fP,
+and
+\f(CWthrow()\fP,
+are supported;
+arbitrary expressions for \f(CWnoexcept\fP
+or types for \f(CWthrow\fP
+are not.
+.IP \(bu
+C++ namespace alias declarations are not supported:
+.RS
+.cS
+namespace ALN = A_Long_Name;    // not supported
+.cE 0
+.RE
+.IP \(bu
+Multiple \f(CW_Alignas\fP
+or \f(CWalignas\fP
+specifiers in the same declaration
+are not supported.
+.IP \(bu
+For the argument to either the
+\f(CW_Alignas\fP
+or \f(CWalignas\fP
+specifier,
+only integer literals
+or types
+are supported;
+arbitrary expressions are not.
+.IP \(bu
+Only simple C++ attribute specifiers like \f(CW[[this]]\fP
+are supported;
+attribute specifiers with namespaces are not.
+Additionally,
+optional arguments for \f(CWdeprecated\fP and \f(CWnodiscard\fP are ignored.
+.IP \(bu
+C++20 contracts
+(\f(CW[[assert]]\fP,
+\f(CW[[ensures]]\fP,
+and
+\f(CW[[expects]]\fP)
+are not supported.
+.IP \(bu
+The C++20 \f(CWexplicit\fP specifier with an expression
+is not supported.
+.SS Other Caveats
+.IP \(bu 3
+Macros are expanded
+.I only
+via the
+.B expand
+command
+and can't be used elsewhere:
+.RS
+.cS
+cdecl> #define exp      explain
+cdecl> exp int *p           // error: can't alias commands
+cdecl> #define FILE_PTR FILE*
+cdecl> explain FILE_PTR f   // error: can't use as type
+.cE 0
+.RE
+.IP \(bu
+When converting from pseudo-English to a C++ declaration,
+any
+\f(CWenum\fP,
+\f(CWclass\fP,
+\f(CWstruct\fP,
+or
+\f(CWunion\fP
+type keyword omitted from a declaration
+(via omission from either the
+.B \-\-explicit-ecsu
+or
+.B \-S
+option,
+or the
+.B "set explicit-ecsu"
+command)
+makes the declaration
+.I not
+``round-trippable'':
+.RS
+.cS
+c++decl> declare pt as pointer to class T
+T *pt;
+c++decl> explain T *pt
+                 ^
+18: error: "T": unknown name
+.cE 0
+.RE
+.IP
+This is because,
+when going from a C++ declaration to pseudo-English,
+.B cdecl
+doesn't know that an arbitrary name,
+in this example, \f(CWT\fP, is a \f(CWclass\fP name.
+.IP
+To include the type keywords explicitly
+and thus make the declarations ``round-trippable,''
+include them via either the
+.B \-\-explicit-ecsu
+or
+.B \-S
+option,
+or the
+.B "set explicit-ecsu"
+command.
+.IP
+Alternatively,
+declare the type via one of
+.BR class ,
+.BR define ,
+.BR enum ,
+.BR struct ,
+.BR typedef ,
+.BR union ,
+or
+.BR using :
+.RS
+.cS
+c++decl> class T
+c++decl> explain T *pt
+declare pt as pointer to T
+.cE 0
+.RE
+.IP \(bu
+While
+.BR class ,
+.BR enum ,
+.BR explain ,
+.BR namespace ,
+.BR struct ,
+.BR typedef ,
+.BR union ,
+and
+.B using
+can accept names that are
+.B cdecl
+keywords,
+.BR cast ,
+.BR declare ,
+and
+.B define
+can not;
+hence,
+not all explanations are ``round-trippable'':
+.RS
+.cS
+cdecl> explain int explain
+declare explain as integer
+cdecl> declare explain as integer
+               ^
+9: syntax error: "explain": name expected
+.cE 0
+.RE
+.IP \(bu
+When converting from one of the C++ overloaded operators
+\f(CW&\fP,
+\f(CW*\fP,
+\f(CW+\fP,
+\f(CW++\fP,
+\f(CW-\fP,
+or
+\f(CW--\fP,
+to pseudo-English
+when declared as:
+.RS
+.cS
+T operator OP(U);
+.cE 0
+.RE
+.IP
+i.e., taking one parameter,
+it's ambiguous
+(to
+.BR cdecl )
+between being a member or non-member operator
+since
+.B cdecl
+doesn't have the context in which the operator is declared.
+If it were declared in-class,
+e.g.:
+.RS
+.cS
+class T {
+public:
+    // ...
+    T operator OP(U);
+};
+.cE 0
+.RE
+.IP
+then clearly it's a member operator;
+if it were declared at file scope,
+then clearly it's a non-member operator;
+but
+.B cdecl
+doesn't have this context.
+In such cases,
+.B cdecl
+omits either
+.B member
+or
+.B non-member
+from its output.
+.IP \(bu
+When converting from pseudo-English
+to a C23
+or C++11
+declaration
+for \f(CWauto\fP
+(or \f(CW__auto_type\fP in GNU C),
+or a
+\f(CWconst\fP,
+\f(CWconstinit\fP,
+reference,
+or an rvalue reference
+variable that is not a function parameter,
+the output doesn't include an initializer:
+.RS
+.cS
+c++decl> declare x as auto
+auto x;
+c++decl> declare x, y as structured binding
+auto [x, y];
+c++decl> declare r as reference to int
+int &r;
+.cE 0
+.RE
+.IP
+These are illegal C++ declarations
+since such declarations
+.I must
+be initialized.
+.IP \(bu
+Only casting a name is supported;
+casting an expression is not.
+.IP \(bu
+When converting from or to a C++ new-style cast,
+only some semantic validation is performed
+to determine whether the type of cast is legal.
+.IP \(bu
+When a predefined type,
+e.g.,
+\f(CWsize_t\fP,
+\f(CWuint16_t\fP,
+etc.,
+is shown (via the
+.B show
+command),
+the underlying type is merely typical
+and does not necessarily match
+the underlying type on any particular platform
+or even the platform on which
+.B cdecl
+is running.
+.IP \(bu
+An integer literal given as the argument for an alignment specifier
+is only checked to ensure it's either zero or a power of two;
+it is not checked to see whether it meets the minimum alignment
+for the type.
+.IP \(bu
+In GNU C,
+the type
+\f(CW__int128\fP
+is a distinct type;
+in Microsoft C,
+the types
+\f(CW__int8\fP,
+\f(CW__int16\fP,
+\f(CW__int32\fP,
+\f(CW__int64\fP,
+and
+\f(CW__wchar_t\fP
+are keyword synonyms.
+These types can take modifiers:
+.RS
+.cS
+unsigned __int128 x128;     // legal in GNU C
+unsigned __int32  x32;      // legal in Microsoft C
+.cE 0
+.RE
+.IP
+In
+.BR cdecl ,
+these types are \f(CWtypedef\fPs
+and can't take modifiers
+since that's illegal in C.
+.IP \(bu
+When using the
+.B \-\-lineno
+or
+.B \-L
+option
+with a
+.I "here document"
+containing escaped newlines
+(lines ending in \f(CW\\\fP),
+the \f(CW\\\fPs
+.I also
+need to be escaped
+to get the line numbers correct
+because the shell ordinarily strips escaped newlines;
+for example:
+.RS
+.cS
+#define IDENT_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_" \\\\
+                    "abcdefghijklmnopqrstuvwxyz" \\\\
+                    "0123456789"
+.cE 0
+.RE
+.SH AUTHORS
+.B cdecl
+has been around since the mid-1980s
+and there have been many versions of
+.BR cdecl ,
+some with different subsets of authors.
+This list is a best-effort at a union of all authors.
+In reverse chronological order:
+.P
+.BI "Paul J. Lucas <" paul@lucasmail.org ">"
+.br
+.BI "Peter Ammon <" cdecl@ridiculousfish.com ">"
+.br
+.BI "David R. Conrad <" conrad@detroit.freenet.org ">"
+.br
+.BI "Alexander Dupuy <" dupuy@cs.columbia.edu ">"
+.br
+.BI "Merlyn LeRoy <" merlyn@rose3.rosemount.com ">"
+.br
+.BI "Tony Hansen <" tony@attmail.com ">"
+.br
+.BI "David Wolverton <" david_wolverton@att.com ">"
+.br
+.B "Graham Ross"
+.SH SEE ALSO
+.BR bison (1),
+.BR clang (1),
+.BR flex (1),
+.BR gcc (1),
+.BR less (1),
+.BR vi (1),
+.BR yacc (1),
+.BR isatty (3),
+.BR readline (3),
+.BR sysexits (3),
+.BR editrc (5)
+.\" vim:set et sw=2 ts=2:

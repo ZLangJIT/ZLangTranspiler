@@ -1,0 +1,110 @@
+.TH "UNICC" 1 "Oct 2019" "Version 1.7"
+
+.SH NAME
+.P
+\fBunicc\fR \- universal parser generator.
+.SH SYNOPSIS
+.P
+unicc [OPTION]... FILE
+.SH ABOUT
+.P
+UniCC is a LALR(1) parser generator.
+.P
+It compiles an augmented grammar definition into a program source code that parses the described grammar. Because UniCC is intended to be target\-language independent, it can be configured via template definition files to emit parsers in almost any programming language.
+.P
+UniCC comes with out of the box support for the programming languages \fBC\fR, \fBC++\fR, \fBPython\fR (both 2.x and 3.x) and \fBJavaScript\fR. Parsers can also be generated into \fBJSON\fR and \fBXML\fR.
+.P
+The official user's manual can be obtained for free here: https://phorward.info/products/unicc/unicc.pdf
+.SH COMMAND-LINE OPTIONS
+.P
+The UniCC command\-line interface supports various, combinable options to
+invoke, modify and specialize the parser generation process, or to trigger
+further tasks.
+.SS -a, --all-warnings
+.P
+Runs UniCC to print all warnings that come up with the grammar. UniCC
+normally suppresses some warning messages that raise up during the parse
+table constructions according to their importance.
+.SS -b NAME, --basename NAME
+.P
+Defines the specified basename \fINAME\fR to be used for the output
+file(s) instead of the one derived by the #prefix\-directive or by the
+name of the input filename. This basename is used for all output files
+if the provided parser template causes the construction of multiple
+files.
+.SS -G, --grammar
+.P
+Dumps an overview of the finally constructed grammar to stderr, right
+before the parse\-tables are generated.
+.SS -h, --help
+.P
+Prints a short overview about the command\-line options and exists.
+.SS -l TARGET, --language TARGET
+.P
+Sets the target language via command\-line. A "#!language" directive in the
+grammar definition will override this value.
+.SS -n, --no-opt
+.P
+Disables state optimization; By default, the resulting LALR(1) parse
+states are optimized during table construction by introducing a special
+SHIFT_REDUCE action which combines a shift and reduction. This method is
+possible when the last symbol of a production is shifted. Standard
+LALR(1) parsers only support SHIFT or REDUCE, not both operations at the
+same time. When this option is enabled, UniCC produces about 20\-30% more
+LALR(1) states. It can be useful for debugging purposes.
+.SS -P, --production
+.P
+Dumps an overview about the finally produced productions and their
+semantic actions.
+.SS -s, --stats
+.P
+Prints a statistics message to stderr when parser generation has
+entirely been finished. This will automatically switched on when
+using the verbose option.
+.SS -S, --states
+.P
+Dumps the generated LALR(1) states that had been generated during the
+parse table generation process.
+.SS -t, --stdout
+.P
+Print all code generator output to stdout instead as files.
+.SS -T, --symbols
+.P
+Dumps an overview of all used symbols.
+.SS -v, --verbose
+.P
+Prints process messages about the specific tasks during parser generation
+process. Automatically switches on the stats option for statistics output.
+.SS -V, --version
+.P
+Prints copyright and version information and exits.
+.SS -w, --warnings
+.P
+Print relevant warnings.
+.SS -x, --xml
+.P
+Triggers UniCC to run the parser description file generator additionally
+to the program module generator. The parser description file generator
+outputs an XML\-based parser representation of the generated parse tables,
+which can be used by third\-party code generators or grammar analysis and
+debugging tools.
+.SS -X, --XML
+.P
+Triggers UniCC to only run the parser description file generator
+without running the program\-module generator.
+.P
+Errors and warnings are printed to STDERR, any other kind of output to STDOUT.
+.SH AUTHOR
+.P
+Written by Jan Max Meyer.
+.SH BUGS
+.P
+Please report bugs into the issue tracker on GitHub:
+.P
+https://github.com/phorward/unicc/issues
+.SH COPYRIGHT
+.P
+Copyright (C) 2006\-2019 by Phorward Software Technologies, Jan Max Meyer.
+.P
+You may use, modify and distribute this software under the terms and conditions of the MIT license.
+

@@ -1,0 +1,146 @@
+# Changelog
+
+This file is used to document any relevant changes done to UniCC.
+
+## [v1.8]
+
+Released on Oct 28, 2023
+
+- Improved program module generator to support <true>- and <false>-settings
+- Updated Test suite
+- Target `python` updated to spaces instead of tabs and further PEP-8 improvements
+- Target `javascript` updated to more recent JS/ECMAScript6 standards
+- Target `json` fixed and updated
+
+## [v1.7]
+
+Released on Jan 20, 2021
+
+- Improved error reporting on own parser
+- New `#extends`-directive added to extend grammars from others
+- Licensing terms changed from 3-clause BSD-license into MIT license
+- Minor function API changes regarding libphorward v1.0.0 compatibility
+- Distributed libphorward sources integrated into the lib/-directory
+- Auto-generated prototypes using pproto: `make -f Makefile.gnu proto.h`
+
+## [v1.6]
+
+Released on: May 27, 2019
+
+- v1.6.2: Provide ERRSTYLE_IMPORTANT-flag to show up important warnings
+- v1.6.1: Removed memory leaking bug
+- Renamed top-level directive `#!mode` options to `scannerless` (default)
+  and `scanner`.
+- `!language`-directive allows for identifier as language parameter.
+- Removed deprecated directives `#parser`, `#description`, `#copyright`
+  and  `#version`.
+- Removed old-style `!model` top-level directive.
+- Several internal code revisions.
+- Compiled and linked against libphorward 0.24.
+
+## [v1.5]
+
+Released on: Nov 20, 2018
+
+- New targets for JavaScript and JSON.
+- Targets C and C++ improved to avoid memory leaking and handle malloc/realloc
+  calls more securely.
+- All targets now supporting the `UNICC_SUCCESS` and `UNICC_ERROR` flags that
+  can be set as current `act` (action) to stop parsing.
+- Started a grammar and templates test suite for better continous integration.
+- Compiled and linked against libphorward 0.23.
+- Removed outdated syntax-tree feature from C target.
+
+## [v1.4]
+
+Released on: April 17, 2018
+
+- Compiled and linked against libphorward 0.22
+- C++ target forked from the C target startet
+- *action_prefix* value can be defined in target language templates to
+  redefine the ``@``-prefix for action code variables by any other desired
+  prefix. This change has been done to make target language processing easier
+  for languages where the ``@``-sign is part of the target language syntax.
+
+## [v1.3]
+
+Released on: December 21, 2017
+
+- [v1.3.2]: Python target 0.4
+  - Raising parse error exceptions
+  - Bugfix to avoid working with previous stack values
+- [v1.3.1]: Bugfix in the C target working with uninitialized values
+- Code generator does not emit action code when the action is empty.
+- New command-line parameter "-l" or "--language" to specify a target language
+  via command-line. This is useful when a grammar only contains AST definitions,
+  which allows to render and run it in any target.
+- Abstract syntax tree generation support:
+  - Drafting an abstract syntax tree definition syntax for the grammar language,
+    by using the operators "=" and ":=". See examples/expr.ast.par for an
+    example working under both C and Python without any modifications.
+  - C and Python parser targets extended to construct abstract syntax tree
+    data structures dynamically.
+  - These are first changes for an upcoming UniCC v2, where the targets shall
+    be re-used with only few improvements.
+- Fixed several bugs in the Python target on insensitive mode.
+- Additionally allow ":" in case of "->" in grammar definitions.
+- Internal code revisions started, but interrupted for now.
+- Renamed folder "templates/" into "targets/".
+
+## [v1.2]
+
+Released on: November 7, 2017
+
+- Started an (yet incomplete) new standard template to provide parser generation
+  support for the Python programming language (targets/python.tlt).
+- Imported the source code of the C standard template into the UniCC repository
+  for further developments, the previous repository gets closed.
+  (targets/c.tlt)
+- Fixed bug in the lexical analyzer generation by linking against
+  libphorward 0.20 that caused a massive overhead of deterministic finite
+  automation states in scannerless mode due an arbitrary character
+  set order. This bug did not produce invalid parsers, but horribly huge tables.
+- Imported the source code of min_lalr1 into the unicc repository, because it
+  is the only place where it is used.
+- Several internal revisions
+  - Changed internal names for files, functions and variables.
+  - Replaced old-style function headers by more convenient ones.
+  - Removed unused code.
+- Renewed manpage
+- New README.md and updated CHANGELOG.md
+
+## [v1.1]
+
+Released on: September 9, 2016
+
+- Internal fixes to compiles against libphorward 0.18
+- Licensing terms changed from Artistic License 2.0 to 3-clause BSD-license
+
+## v1.0
+
+Released on: June 29, 2012
+
+- Moved build toolchain to GNU autotools, cross-compiles well on Linux
+- Turned the entire regular expression handling to the new pregex_ptn structures
+  of the Phorward Foundation Library.
+- Output of original regular expressions in the standard regex notation into
+  the <regex>-tag of the parser description file.
+- New command-line option '-t' to print the output files to stdout instead of
+  writing it into files.
+- Command-line option '-v' automatically switches '-s' on.
+- Added document type definition file 'unicc.dtd' and changed XML output.
+- The "#case insensitive strings" option was not correctly recognized due the
+  revision of the regular pattern construction mechanism.
+
+
+[develop]: https://github.com/phorward/unicc/compare/1.6.0...develop
+[v1.7]: https://github.com/phorward/unicc/compare/1.6.0...1.7.0
+[v1.6]: https://github.com/phorward/unicc/compare/1.5.0...1.6.0
+[v1.5]: https://github.com/phorward/unicc/compare/1.4.0...1.5.0
+[v1.4]: https://github.com/phorward/unicc/compare/1.3.3...1.4.0
+[v1.3.3]: https://github.com/phorward/unicc/compare/1.3.2...1.3.3
+[v1.3.2]: https://github.com/phorward/unicc/compare/1.3.1...1.3.2
+[v1.3.1]: https://github.com/phorward/unicc/compare/1.3.0...1.3.1
+[v1.3]: https://github.com/phorward/unicc/compare/1.2.0...1.3.0
+[v1.2]: https://github.com/phorward/unicc/compare/1.1.0...1.2.0
+[v1.1]: https://github.com/phorward/unicc/compare/1.0.0...1.1.0

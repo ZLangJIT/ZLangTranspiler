@@ -23,8 +23,6 @@ class MMapHelper {
     std::size_t page_size;
     const char * api;
 
-    void error(std::exception const& e);
-
     public:
 
     MMapHelper();

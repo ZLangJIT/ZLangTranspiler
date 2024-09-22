@@ -1,0 +1,20 @@
+int a_variable;
+
+int fs() {
+  return 7;
+}
+
+class foo {
+  int a;
+  int e;
+  int foobar = 60;
+  int f = fs();
+};
+
+typedef struct foo foo;
+
+int main() {
+  foo foo;
+  foo.a = 5;
+  return 0;
+}

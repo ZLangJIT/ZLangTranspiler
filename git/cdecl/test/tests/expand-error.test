@@ -1,0 +1,34 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO <<END
+expand DOES_NOT_EXIST
+expand __VA_ARGS__
+expand __VA_OPT__
+
+set knr
+expand __DATE__
+expand __TIME__
+set c
+
+#define PASTE(A,B)                A ## B
+expand PASTE(->,*)
+expand PASTE(<,<<)
+expand PASTE(<=,>)
+expand PASTE(.,*)
+expand PASTE(:,:)
+
+#define TOO_FEW(A,B)              A B
+expand TOO_FEW(x)
+#define TOO_FEW_VARIADIC(A,B,...) A B __VA_ARGS__
+expand TOO_FEW_VARIADIC(x)
+#define TOO_MANY(A,B)
+expand TOO_MANY(x,y,z)
+
+#define QUOTE(X)                  #X
+#define UNTERMINATED_MACRO(X)     QUOTE(X
+expand UNTERMINATED_MACRO(a)
+
+#define VARIADIC(...)             __VA_ARGS__
+set c89
+expand VARIADIC(x)
+END
+# vim:set et sw=2 ts=2:

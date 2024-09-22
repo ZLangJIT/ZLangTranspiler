@@ -1,0 +1,3382 @@
+Cdecl NEWS -- history of user-visible changes.
+
+Copyright (C) 2018-2024  Paul J. Lucas, et al.
+See the end of the file for license conditions.
+
+Note: over its 35+ year history, cdecl has never had good version numbering.
+For changes in a particular version where the version number is unknown, the
+version's author is given instead.  For the full (known) list of authors along
+with their complete changes, see the AUTHORS file.
+
+-------------------------------------------------------------------------------
+
+* Changes in Cdecl 18.4
+
+** Placemarker for empty macro argument
+Macros that can take a single argument can also accept no arguments since it's
+interpreted as an argument of a placemarker, e.g.:
+
+    cdecl> #define M1(A)    [A]
+    cdecl> expand M1()
+    M1() => [A]
+    | A =>
+    M1() => []
+
+is correct.
+
+
+* Changes in Cdecl 18.3
+
+** `no` option autocompletion
+Since the "no" options are of the form `nofoo` and not `no-foo`, if the user
+types:
+
+    cdecl> set no-<tab>
+
+i.e., includes '-', it's changed to just "no" so **cdecl** will still present
+all the "no" options.
+
+** Dynamic `__FILE__` & `__LINE__` macros.
+The value of `__FILE__` is now the current input file, if any, or `stdin`.  The
+value of `__LINE__` is the line numer within that file, if any.
+
+** `language` option
+The `lang` option has been replaced by `language` to match the `--language`
+command-line option.
+
+** Fixed `set` _lang_
+Giving a value for a language for the `set` command is now correctly forbidden,
+e.g.:
+
+    cdecl> set c=x
+                 ^
+    7: error: "x": set option "c" takes no value
+
+** `##` whitespace
+Fixed incorrect deletion of whitespace when concatenating tokens in some cases.
+
+** `__VA_ARGS__` as `##` argument
+`__VA_ARGS__` as a `##` argument is now correctly not further expanded, e.g.:
+
+    cdecl> #define XPASTE(...)  x ## __VA_ARGS__
+    cdecl> expand XPASTE(__LINE__)
+    ...
+    XPASTE(__LINE__) => x__LINE__
+
+** `__VA_OPT__` expanding to nothing
+When `__VA_OPT__` expands to nothing, it needs to expand into a placemarker.
+
+** `__VA_OPT__` whitespace
+Leading & trailing whitespace in `__VA_OPT__()` tokens is now trimmed, e.g.:
+
+    cdecl> #define CALL_QUOTE(x) QUOTE(x)
+    cdecl> #define QUOTE(X) #X
+    cdecl> #define TILDAS(...) ~__VA_OPT__( ~ )~
+    cdecl> expand CALL_QUOTE(TILDAS(x))
+    ...
+    CALL_QUOTE(~~~) => "~~~"
+
+
+* Changes in Cdecl 18.2
+
+** More permissive types
+Unknown names are now always permitted as types in pseudo-English.  Hence, the
+`--permissive-types` option now only additionally allows keywords in language
+versions other than the current language as types.
+
+
+* Changes in Cdecl 18.1
+
+** `alignas` scoped names
+Alignments can now have names to denote the number of bytes, e.g.:
+
+    c++decl> explain alignas(N) char c
+    declare c as character aligned as N bytes
+
+where `N` is presumed to be an integer constant.
+
+** `_BitInt` multi-declarations
+Declarations like:
+
+    declare x, y as bit precise integer 4
+
+are now correct.
+
+** `CDECL_TEST=false` tests
+Fixed these tests.
+
+** `CDECL_TEST=true` & `--no-config`
+Specifying the `--no-config` option now always works even when testing.
+
+** `enum`, `class`, `struct`, & `union` multi-declarations
+Explaining these is now correct, e.g.:
+
+    cdecl> explain enum E x, y, f()
+    declare x, y as enumeration E
+    declare f as function returning enumeration E
+
+** Glob help
+Fixed glob help.
+
+** Implicit `int` warnings
+In C89, implicit `int` is now warned about in more cases, e.g.:
+
+    cdecl> set c89
+    cdecl> explain static x
+                   ^
+    9: warning: missing type specifier; "int" assumed
+    declare x as static integer
+
+** K&R C typeless parameters in English
+To match gibberish output, K&R C typeless parameters now print `as integer` in
+pseudo-English:
+
+    cdecl> set c17
+    cdecl> explain char f(x)
+                          ^
+    16: warning: missing type specifier; "int" assumed
+    declare f as function (x as integer) returning character
+
+** `--no-prompt` option short option
+The short option for `--no-prompt` has been changed from `-p` to `-P`.
+
+** New `--permissive-types`, `-p` options
+Permits either unknown names or keywords in language versions other than the
+current language as types in pseudo-English.  By default, a declaration like:
+
+    declare p as pointer to T
+
+where `T` is an unknown type would result in "unknown type" error.  Similarly,
+a declaration in C like:
+
+    declare p as pointer to class
+
+would result in an "unsupported type in C" error even though `class` would be a
+valid user-defined type in C.  This option permits such declarations.
+
+Permissive types is not the default because always permitting either unknown
+names or keywords in language versions other than the current language as types
+can result in confusing errors.  For example, if permissive types were the
+default, then you would get the following in C:
+
+     cdecl> declare D as virtual destructor
+                         ^
+     14: warning: "virtual" is a keyword in C++
+     virtual D;
+                                 ^
+     22: syntax error: "destructor": unexpected token ...
+
+Here, `virtual`, not being a keyword in C and therefore a valid name for a
+user-defined type, would be taken to be a type name, so **cdecl** would
+interpret that to mean you want to declare `D` as a variable of type `virtual`
+-- and **cdecl** would do so by printing `virtual D` (but still warning that
+`virtual` is a keyword in C++).  But then `destructor` would be unexpectedly
+encountered and generate an error.  (It could easily be the case that you
+simply forgot to set the current language to C++ instead of C.)
+
+With the default non-permissive behavior, you would instead get:
+
+     cdecl> declare D as virtual destructor
+                         ^
+     14: error: "virtual": unsupported keyword in C
+
+which is clearer, but at the cost of not permitting valid declarations that use
+either unknown names or keywords in language versions other than the current
+language as types.
+
+** `show ::FILE`
+Fixed a crash.
+
+** `show` fixed glob
+Now, showing a specific glob (one having no `*`s in it) like:
+
+    c++decl> show ::FILE
+
+will show the definition of `FILE` even though it's predefined and not the
+default of user-defined.
+
+** Type name warnings
+Defining types that are keywords in other languages are now warned about, e.g.:
+
+    cdecl> struct friend
+                  ^
+    8: warning: "friend" is a keyword in C++98
+
+** `typedef` modifiers
+Attempting to use modifiers with `typedef`s is now correctly forbidden, e.g.:
+
+    typedef int T
+    explain unsigned T                  // error
+
+** Unknown names
+Now checking for unknown names in pointer-to-member and reference declarations.
+
+
+* Changes in Cdecl 18.0
+
+** Allowing blocks & user-defined literals in multi-declarations
+Apple blocks and C++ user-defined literals are now correctly allowed in multi-
+declarations, e.g.:
+
+    int i, a[2], (^b)(char), f(double), operator~(S&), operator""_x(char)
+
+** `cast` & `declare` command executable name support
+Support for the `cast` & `declare` command as the executable name has been
+dropped; only the `explain` command is still supported.  (I didn't realize
+until now that `declare` conflicts with the shell built-in.)`
+
+** Cast to `typedef`
+Casting to a `typedef`d type is fixed:
+
+    cdecl> typedef int T
+    cdecl> cast x into T
+    (T)x
+
+** C99 language extensions
+Fixed printing of C99 language extention names.
+
+** `CDECL_DEBUG` environment variable
+If set to an "affirmative" value (one of 1, t, true, y, or yes, case-
+insensitive), then **cdecl** will print its process ID and a "waiting for
+debugger to attach" message to standard error and wait indefinitely for a
+debugger to attach.
+
+** `CDECL_TEST` environment variable
+If set to an "affirmative" value (one of 1, t, true, y, or yes, case-
+insensitive), then **cdecl** be in "testing mode" (see man page for details).
+
+** `complex` & `imaginary` help
+Adding these missing modifiers to the help.
+
+** Constructor & pre-C99 function qualifiers
+`const`, `volatile`, `__restrict`, `final`, and `override` qualifiers are now
+syntactically allowed on constructors and pre-c99 functions even though they
+are still semantically illegal to give better error messages.
+
+** Digraph & trigraph preprocessor support
+Digraphs & trigraphs are now supported by the preprocessor:
+
+    #define   ML ??/
+      multiline
+
+    %:define  QD(X)  %:X          // same as: #define QD(X) #X
+    ??=define QT(X)  ??=X         // same as: #define QT(X) #X
+
+Additionally when showing macros in either digraph or trigraph mode, the
+correct tokens are used:
+
+    cdecl> set digraphs
+    cdecl> show QD
+    %:define QD(X) %:X
+
+** Digraph & trigraph structured binding support
+Digraphs & trigraphs are now correctly supported for structured bindings.
+
+** `--echo-commands` & config files
+Commands are now also echoed for those in configuration files.
+
+** `infer-command` and `constant cast`
+When `infer-command` mode is set, spelling out `constant` now works correctly:
+
+    constant cast p into pointer to int
+
+** File line number
+When reading from a file via `-f`, now includes the file name and error line
+number in error messages.
+
+** Fixed multi-declaration of functions
+A multi-declaration of functions with different signatures has been fixed,
+e.g.:
+
+    cdecl> explain int f(int), g(double)
+    declare f as function (integer) returning integer
+    declare g as function (double precision) returning integer
+
+** Invalid conf file is now fatal
+An error in a conf file is now fatal.
+
+** New `--lineno`, `-L` option
+Specifies an integer to add to all line numbers in error and warning messages
+as a debugging aid.  (See the man page for details.)
+
+** `show` non-existent glob
+An error message will now be printed if a glob has no matches.
+
+** More permissive `scope`
+Now, `scope` can be used anywhere in a scoped declaration, i.e., something
+having the generic `scope` can have anything nest within it and `scope` can
+nest within anything.
+
+** C++ `std` namespace
+Whenver "std" is used for a scope, **cdecl** now automatically makes it a
+namespace, e.g.:
+
+    c++decl> struct std::T
+    c++decl> explain std::T x
+    declare x as structure T of namespace std
+
+** Using predefined macro names elsewhere
+Attempting to use a predefined macro name as an ordinary name now results in an error:
+
+    cdecl> explain int __DATE__
+                   ^
+    9: error: "__DATE__" is a predefined macro
+
+
+* Changes in Cdecl 17.0.1
+
+** Fixed returning parameter packs
+Functions returning parameter packs is now correctly illegal.
+
+
+* Changes in Cdecl 17.0
+
+** Abbreviated function template parameter packs
+Functions with `auto` parameters (abbreviated function templates) like:
+
+    int f( auto x )
+
+have been supported since **cdecl** 9.6; this release adds additional support
+for parameter packs like:
+
+    int f( auto ...x )
+
+** Added `help` option suggestions
+Added suggestions to error messages for the help options `commands`, `english`,
+and `options`, for example:
+
+    cdecl> help eglish
+                ^
+    6: "eglish": no such command or option; did you mean "english"?
+
+** Constrained `auto`
+For abbreviated function templates, _constrained_ `auto` declarations are now
+supported:
+
+    c++decl> explain C auto x
+    declare x as concept C
+    c++decl> explain C auto ...x
+    declare x as concept C parameter pack
+
+** `auto` parameters in `typedef`s
+Use of `auto` in `typedef` function-like parameters is now correctly reported
+as an error:
+
+    c++decl> typedef int F(auto)
+                           ^
+    15: error: "auto" illegal in type definition
+
+** `decltype` declarations
+Now recognizing `decltype` just to say it's not supported.
+
+** Glob help
+The help text now defines "glob."
+
+** GNU `--version`
+Now printing **cdecl** copyright year, author, license, free software
+statement, and no warranty statement to conform to the GNU Coding Standards;
+see <https://www.gnu.org/prep/standards/html_node/_002d_002dversion.html>.
+
+** Structured binding declarations
+Structured binding declarations are now supported except that you don't assign
+them from anything (no `=` _expression_):
+
+    c++decl> explain auto [x, y]
+    declare x, y as structured binding
+    c++decl> explain auto&& [x, y]
+    declare x, y as rvalue reference to structured binding
+
+** Fixed `operator` declaration core dump
+An invalid scoped operator name containing a keyword like:
+
+    c++decl> explain bool int::operator!()
+
+would dump core; fixed.
+
+** Fixed `--west-decl=t` for `pointer to const pointer`
+Given:
+
+    c++decl --west-decl=t 'declare p as pointer to const pointer to int'
+
+you'd incorrectly get:
+
+    int *const *p;
+
+You now correctly get:
+
+    int* const* p;
+
+
+* Changes in Cdecl 16.4.1
+
+** Fixed `make install DESTDIR=...`
+Fixed `make install` of shell completion functions when setting `DESTDIR` on
+the command-line.
+
+** Better error message when expanding `__VA_*` macros
+Attempting to expand either `__VA_ARGS__` or `__VA_OPT__` now says that either
+is valid only in a macro definition.
+
+
+* Changes in Cdecl 16.4
+
+** Echoing commands short option
+The short option for `--echo-commands` has been changed from `-O` to `-E`.
+
+** Number help
+Help now includes what a "number" is.
+
+** Shell completion options
+There are two new options: `--commands`/`-K` that prints **cdecl**'s commands
+for the current language and `--options`/`-O` that prints cdecl's options.
+Both are intended to aid in writing shell completion functions for **cdecl**.
+
+** Shell completion functions
+Bash and Zsh shell completion functions for **cdecl** are included under
+`share` and are installed as part of `make install`.
+
+** Improved error messages for predefined types
+Improved error messages in cases involving a predefined type such as:
+
+    cdecl> explain int int8_t
+    cdecl> struct int8_t
+
+In both cases, the error message printed now is:
+
+    error: "int8_t" is a predefined type starting in C99
+
+
+* Changes in Cdecl 16.3
+
+** Better destructor parameter error message
+Attempting either to explain or declare a destructor having a parameter list
+now prints "destructors may not have parameters" explicitly.
+
+** Defining a type more than once
+If a type is defined again where the current language is older than the
+language in which it was previously defined, the type's set of languages is now
+updated to be the current language and newer.  For example, previously:
+
+    cdecl> set c23
+    cdecl> typedef int Int
+    cdecl> show
+    typedef int Int;
+    cdecl> set c17
+    cdecl> typedef int Int        // Already exists so did nothing.
+    cdecl> show                   // Would NOT show anything.
+    cdecl>
+
+Now the second `typedef` would update `Int` to make it available in C17 and
+newer so the second `show` would show it.
+
+** Multiple conflicting declarations
+Now exhaustively checking multiple declarations for conflicts in C.
+Previously, multiple declarations of a variable or function with conflicting
+types that was separated by a different variable or function wasn't caught:
+
+    int x, x;                     // OK in C
+    int x, *x;                    // error (different types)
+    int x, y, *x;                 // error, but wasn't caught
+
+Now it is.
+
+** Using macros elsewhere
+Previously, attempting to use a macro where names are generally allowed would
+result in an error like:
+
+    cdecl> #define N 5
+    cdecl> explain int a[N]
+                         ^
+    15: syntax error: "N": ']' expected
+
+because "N" was returned as a macro token by the lexer.  Now, the lexer ignores
+the fact that a name might be a macro.
+
+
+* Changes in Cdecl 16.2.2
+
+** `long long` not until C++11
+Previously, **cdecl** allowed `long long` in C++98 and C++03, but it wasn't
+officially supported until C++11.  Now, **cdecl** allows `long long` in C++
+only since C++11.
+
+
+* Changes in Cdecl 16.2.1
+
+** Fixed macro argument list memory leak
+Fixed said leak.
+
+
+* Changes in Cdecl 16.2
+
+** Partial `typeof` support
+Both `typeof` and `typeof_unqual` in C23 are partially supported in that types
+are accepted (but expressions are not):
+
+    typeof(int*) x                // supported
+    typeof(x) y                   // not supported
+
+Additionally, GNU's `__typeof__` is a synonym for `typeof`.
+
+
+* Changes in Cdecl 16.1
+
+** `explicit-ecsu` in English
+The value of the `explicit-ecsu` option now also applies in pseudo-English.
+Previously:
+
+    c++decl> class C
+    c++decl> explain C *p
+    declare p as pointer to C
+
+Now (with `explicit-ecsu` containing `c`):
+
+    c++decl> class C
+    c++decl> set explicit-ecsu = csu
+    c++decl> explain C *p
+    declare p as pointer to class C
+
+** Leading/trailing whitespace stringification
+Previously:
+
+    #define Q2(A,B,C)  #B
+    expand Q2(, a b ,)
+
+incorrectly returned `" a b "` whereas now it correctly returns `"a b"`.
+
+
+* Changes in Cdecl 16.0
+
+** Macro expansion
+Cdecl now allows you to `#define` macros and `expand` them step-by-step.
+
+** C99 with extension error messages
+Improved C99 with extension error messages.
+
+** `--disable-cdecl-debug` removed
+The `--disable-cdecl-debug` `configure` option has been removed (which means
+**cdecl** debug output is always compiled in).
+
+** `GCC_COLORS`
+Support for `GCC_COLORS` has been removed. It was more of a hindrance than a
+help.
+
+** Implicit `int` pointers in C++
+Implicit `int` pointer declarations, e.g., `*p`, are now correctly illegal in
+C++.
+
+** `--infer-command`, `-I`
+The former `--explain` and `-e` options have been renamed `--infer-command` and
+`-I`; the former `explain-by-default` `set` option has been renamed `infer-
+command`.
+
+** Fixed issue #32: Invalid function declarator accepted as valid
+A declarator like "int f()()()" was incorrectly accepted as valid -- fixed.
+
+** Fixed `infer-command` comment syntax error
+When in `infer-command` mode, a line starting with a comment would cause a
+syntax error. Fixed.
+
+** `--east-const`, `-e`
+Since the old `-e` was renamed to `-I`, the short option for `--east-const` is
+now `-e`.
+
+** Lambdas in C
+Lambdas are now correctly illegal in C.
+
+** Nested `typedef`s
+Fixed printing of `typedef`s of nested types, e.g.:
+
+    c++decl> struct S { typedef int I; }
+    c++decl> typedef typename S::I T
+    c++decl> show
+    typedef S::I T;
+
+** `restrict` arrays
+Arrays being `restrict` except as function parameter is now correctly illegal.
+
+** Fixed parsing `struct` member bit-field
+A declararation like:
+
+    struct S
+    explain int S::x : 3
+
+was incorrectly parsed; that's now fixed.  (Scoped names still correctly can't
+be declared like that with bit fields, however.)
+
+** Types in error & warning messages
+For types that are `typedef`s, now printing `aka` followed by their underlying
+types in more cases.
+
+** Fixed escaped newlines
+Fixed escaped newline handling when not using GNU readline.
+
+** Fixed `q` command
+Fixed having `q` be a synonym for `quit` in `infer-command` (formerly `explain-
+by-default`) mode.
+
+
+* Changes in Cdecl 15.0
+
+** Coalesced `explain` output
+Output from `explain` coalesces same-base-type declarations together, e.g.:
+
+    cdecl> explain int x, *p, y
+    declare x, y as integer
+    declare p as pointer to integer
+
+** Command help
+The `help` command now accepts a **cdecl** command name and prints help for
+only that command.
+
+** Optional `unique_id` in dump output
+By default, dumped AST JSON5 no longer includes `unique_id` values.  (This is
+so diffs of debug output that differ only by `unique_id` don't cause tests to
+fail.)
+
+Correspondingly, the `-d` and `--debug` command-line options and the `debug`
+`set` option now optionally take a `u` argment to re-enable printing
+`unique_id` values (that are useful for debugging).
+
+** `dup_from_id`
+When dumping JSON5 output and `unique_id` values are included, an additional
+`dup_from_id` value is now also printed. It is the `unique_id` of the AST node
+the current node was duplicated from, if any.
+
+** Dump in JSON5 (really)
+The format of the dump output is now (really) in valid JSON5 format.
+
+** More std types
+Added more standard types.
+
+** Folded `cast` help
+Help for new-style casts has been folded into the same line for C-style casts.
+
+** `--no-buffer-stdout` & `-b`
+Added command-line options to set stdout to unbuffered.  (This is useful to
+print output immediately while single-stepping in a debugger.)
+
+** `non-throwing`
+Previously, `non-throwing` always means `throw()`.  Now, the meaning changes
+based on the current language: if it's C++11 or later, it means `noexcept`.
+
+** `type` in `define`
+**cdecl** now allows the word `type` to appear in a `define` command, e.g.:
+
+    define PI as pointer to int
+    define PI as type pointer to int    // same as above
+
+** Multiple declarations fixes
+Declarations like:
+
+    explain bool b, operator!(const S&)
+    explain int f(), a[2]
+
+now work.
+
+** Showing `inline namespace` types
+Showing `inline namespace` types as gibberish has been fixed.
+
+** Types in error & warning messages
+The offending type is now included in error messages.  For example:
+
+    cdecl> explain void f(double d, int x[d])
+                                         ^
+    31: error: invalid array dimention type "double"; must be integral
+
+If the type is a `typedef`, also prints `aka` followed by its underlying type:
+
+    c++decl> explain std::size_t operator new( std::size_t )
+                     ^
+    9: error: invalid operator "new" return type "std::size_t" (aka, "unsigned long"); must be "void*"
+
+
+* Changes in Cdecl 14.4
+
+** `_Alignas` forward declarations
+`_Alignas` is now correctly forbidden on forward declarations.
+
+** `auto` with multiple declarators in C
+`auto` with multiple declarators is now correctly forbidden in C.
+
+** `auto *p` in C
+`auto` with a pointer declarator is now correctly forbidden in C.
+
+** Bit-field `typedef`s for `enum`s
+A bit-field of a `typedef` for an `enum` is now correctly forbidden in C:
+
+    typedef enum E T
+    explain T x : 4                     // error: enum bit-field is illegal
+
+** `const` `typedef` of reference
+**cdecl** will now warn about applying `const` to a reference `typedef`:
+
+    c++decl> using rint = int&;
+    c++decl> explain const rint x
+                     ^
+    9: warning: "const" on reference type has no effect
+
+** Reference to function or reference
+**cdecl** now correctly allows references to function and references.
+
+** Reworked qualified array syntax
+C99 added the ability to qualify function parameters using array syntax, e.g.:
+
+    void f( int x[const] );             // or volatile or restrict
+    void f( int x[static 2] );          // must be non-null and 2 mininum size
+
+The problem was if this new use of `static` was converted to pseudo-English in
+the intuitive way:
+
+    declare f as function (x as static array 2 of integer) returning void
+
+then it would be ambiguous with conventional `static` arrays:
+
+    static int x[2];
+
+As an ugly fix, **cdecl** forced you to put the qualifiers _after_ `array`:
+
+    declare f as function (x as array static 2 of integer) returning void
+
+The new `static` is really a new qualifier, not a storage-class specifier.  To
+give **cdecl** an intuitive syntax, the new `static` is now `non-empty` in
+pseudo-English to disambiguate it and allow it to come _before_ `array`:
+
+    declare f as function (x as non-empty array 2 of integer) returning void
+
+** Function returning `typedef` of `volatile`
+Functions returning a `typedef` of `volatile` are now correctly warned about in
+C++20 and later:
+
+    c++decl> using vint = volatile int
+    c++decl> explain vint f()
+                     ^
+    9: warning: "volatile" return types are deprecated since C++20
+    declare f as function returning vint
+
+** Member functions with linkage
+Now flagging member functions with user-specified linkage as an error.
+
+** Unsupported `set` options
+When printing all `set` options in response to the `set` command, **cdecl** now
+also prints `(Not supported ....)` next to options that are not supported in
+the current language.
+
+
+* Changes in Cdecl 14.3
+
+** `*` and `-`
+For the `explicit-ecsu`, `explicit-int`, and `west-pointer` options, `*` is a
+synonym for "all" and `-` is a synonym for "none" but only when they're by
+themselves.
+
+** Arrays with named sizes
+Arrays can now have names to denote their size, e.g.:
+
+    cdecl> explain int a[N]
+    declare a as array N of integer
+
+When such an array is a function parameter, **cdecl** now knows it's a VLA:
+
+    cdecl> explain void f( int n, int a[n] )
+    declare f as function (n as integer, a as variable length array n of integer) returning void
+
+** Autocompleting `precision`
+`precision` is now autocompleted following `double` in pseudo-English.
+
+** Autocompleting `returning` for lambdas
+`returning` was added to the set of next autocompletable keywords for `lambda`.
+
+** Ding on no command match
+When no command is matched at all for autocompletion, we now ring the bell.
+
+** Improved "declaration expected" error message
+For declarations like:
+
+    cdecl> explain int float
+
+**cdecl** now mentions that "float" is a keyword in error messages.
+
+
+* Changes in Cdecl 14.2
+
+** Autocompletion `=`
+Autocompleting `set` options that take a value now includes `=`.
+
+** `-I` changed to `-i`
+The `-I` option (`--explicit-int`) has been changed to `-i`.
+
+** `-R` changed to `-r`
+The `-R` option (`--trailing-return`) has been changed to `-r`.
+
+** "West" pointer types
+New `--west-pointer` and `-w` command-line options and a new `west-pointer`
+`set` option allow specification of when to print `*`, `&`, and `&&` adjacent
+to types ("west"):
+
+    int *p;  // east
+    int* p;  // west
+
+
+* Changes in Cdecl 14.1.1
+
+** Escaping quotes in dump strings
+When dumping, quotes in strings are now properly escaped.
+
+** Quoting lambda capture dump strings
+When dumping, `this` and `*this` are now properly quoted.
+
+** Fixed operator dump crash
+Dumping an operator caused a crash: fixed.
+
+
+* Changes in Cdecl 14.1
+
+** Alternative tokens
+Blocks, lambda captures, and reference functions now correctly print
+alternative tokens when the option is enabled.
+
+** Alternative tokens vs. di/trigraphs
+If both alternative token and either di/trigraph options are set, alternative
+tokens now have priority.
+
+** C casting without a name
+Now allowing C-style casting without a name:
+
+    cdecl> cast to pointer to char
+    (char*)
+
+** Di/Trigraphs
+Now correctly emitting di/trigraphs for lambda captures and `operator[]`.
+
+** Debug output
+The format of the debug output has been made more JSON5-like.
+
+** Limit when `q` means `quit`
+The `q` command is now recognized as a synonym for `quit` only when it's the
+only thing on a line other than whitespace.  This now allows things like:
+
+    cdecl> declare p, q as pointer to int
+    int *p, *q;
+
+to work without complaining that `q` is a **cdecl** keyword.
+
+** Trailing return type
+New `--trailing-return` and `-R` command-line options and `trailing-return`
+`set` option enable printing a function's or operator's return type using the
+trailing return type syntax in C++11 and later.
+
+** `unsigned` in K&R C
+Now correctly restrict `unsigned` to `int` only in K&R C.
+
+** Verbose version
+If either the `--version` or `-v` is given twice, additionally prints the set
+of `configure` feature & package options and whether GNU readline (if compiled
+in) is genuine.
+
+** Fixed explicit constructor with unecessary `()`
+A declaration like:
+
+    explain explicit (C)(int)
+
+that's an explicit constructor with unnecessary `()` caused a crash.  Fixed.
+
+
+* Changes in Cdecl 14.0
+
+** Autocompletion bell
+When hitting TAB and there are no completion matches, **cdecl** now rings the
+terminal's bell.
+
+** Cast into array
+Now correctly allowing casting into an array when there is no name:
+
+    cdecl> explain (char const *const[])
+    cast into array of constant pointer to constant character
+
+** Destructors in C
+**Cdecl** now correctly reports destructors in C as an error.
+
+** Digraph & trigraph fixes
+The digraphs and trigraphs for `{` and `}` weren't emitted when they should
+have been for nested types.  The digraphs & trigraphs for `{` and `}` weren't
+parsed at all.  Both fixed.
+
+** Lambdas
+Support for C++ lambdas has been added:
+
+    c++decl> explain [=,&x](int n)
+    declare lambda capturing [copy by default, reference to x] (n as integer)
+
+** Undid K&R function parameter printed as `int`
+Undid a change in **cdecl** 11.5 where K&R C typeless function parameters were
+printed as being of type `int`: they now again print as only their names.
+
+
+* Changes in Cdecl 13.2
+
+** Improved autocompletion
+In cases where words in pseudo-Engish can only have a limited set of words that
+follow in the grammar, only those are now suggested.
+
+** Array of array check
+Now correctly reporting declarations of arrays of incomplete arrays as an
+error, e.g.:
+
+    cdecl> explain void f(int x[][])
+                                 ^
+    23: error: array dimension required
+
+** Fixed color prompts
+Prompts were always being displayed in color even when --color=never.  Fixed.
+
+** Function parameter checks
+No longer require certain declarations to be function parameters: `const`,
+`volatile`, `static`, and variable length arrays; `[[carries_dependency]]`.
+This was changed so you can explain an individual function parameter
+declaration without having to wrap it inside a function declaration.
+
+** Autocompletion word-break characters
+The set of word-break characters for autocompletion has been expanded to be
+(almost) all non-identifier characters.
+
+** `extern void v`
+C allows you to declare an object of an incomplete type, so C allows:
+
+    extern void v
+
+Now cdecl does also.
+
+** More English synonyms
+The following English synonyms have been added:
+
+    bit-precise integer  _BitInt
+    bit precise integer  _BitInt
+
+** `[[no_unique_address]]` bit fields
+Bit-fields having `[[no_unique_address]]` are now correctly reported as an
+error.
+
+** User-defined literal parameter lists
+Fixed requiring parameter list for user-defined literals in English.
+
+
+* Changes in Cdecl 13.1
+
+** `auto` type definitions and casts
+Defining or casting a type containing `auto` is now correctly reported as an
+error.
+
+** C23 `auto`
+Added support for `auto` as a deduced type in C23.
+
+** C23 trigraphs
+Trigraphs are no longer supported in C23.
+
+** `_BitInt(<int>)` help
+`_BitInt(<int>)` was added to the help text.
+
+** Color prompt
+Now printing the prompt in color even when readline is disabled.
+
+** More English synonyms
+The following English synonyms have been added:
+
+                    boolean  _Bool
+                    Boolean  _Bool
+                     char 8  char8_t
+                    char 16  char16_t
+                    char 32  char32_t
+                 const-eval  consteval
+        constant-evaluation  consteval
+                 const-expr  constexpr
+        constant-expression  constexpr
+                 const-init  constinit
+    constant-initialization  constinit
+           double precision  double
+             floating point  float
+               user defined  user-defined
+             wide character  wchar_t
+
+** C++ `auto` help
+`auto` is now correctly listed as a C++ type in the help for C++11 and later.
+
+** More pseudo-English type names
+When explaining gibberish, print types in C/C++ (e.g., `int`), not pseudo-
+English (e.g., `integer`).
+
+** `--no-english-types`, `-T`, & `english-types`
+Added command-line options to disable printing type names in pseuso-English and
+corresponding `set` option.
+
+** More english for user-defined conversions
+User-defined conversions in pseudo-English now allow "const[ant] eval[uation]",
+"const[ant] expr[ession]", and "const[ant] init[ialization]" for a storage
+class.
+
+** `_BitInt` maximum bits
+Now check that the maximum number of bits for `_BitInt` is 64.
+
+** `explicit-int` parsing
+Fixed a bug of not resetting the current `explicit-int` option to none before
+parsing a new string.
+
+** `friend` scoped user-defined conversion operators
+Explaining a `friend` scoped user-defined conversion operator, e.g.:
+
+    explain friend C::operator int()
+
+is now parsed correctly.
+
+** `[[noreturn]]` in C23.
+`[[noreturn]]` is now printed rather than `_Noreturn` in C23.
+
+** Invalid destructor name error
+Improved the error message for an invalid destructor name, e.g., `S::~T`.
+
+** Removed `--interactive` & `-i` options
+Removed these command-line options.  They've been in cdecl since the beginning,
+but never seemed to have a justification.
+
+** `exit` and `quit` command line arguments
+Both the `exit` and `quit` commands when given as the first word of the first
+argument on the command line are now correctly reported as an error.
+
+** C23 `constexpr` help
+Added missing `constexpr` to the help for C23.
+
+** Missing C++ types man page
+Added some missing C++23 types to the manual page.
+
+** Octal digit separators
+Digit separators are now supported for octal integers.
+
+** `reproducible` and `unsequenced` man page
+Added missing `reproducible` and `unsequenced` to the manual page.
+
+** Variadic function parameter
+A `...` is now correctly allowed as the only function parameter in C++ as well
+as C23.
+
+
+* Changes in Cdecl 13.0
+
+** Better copy constructor support
+Declarations like:
+
+    c++decl> explain C(C const&)
+    declare C as constructor (reference to constant C)
+
+are now supported better.
+
+** C23 `alignas`
+In C23, `alignas` is now used instead of `_Alignas`.
+
+** C23 `_BitInt(N)`
+The `_BitInt(N)` type in C23 in now supported.
+
+** C23 `bool`
+In C23, `bool` is now used instead of `_Bool`.
+
+** C23 `constexpr`
+The `constexpr` storage class in C23 is now supported.
+
+** C23 fixed type `enum`
+Fixed-type enumerations in C23 are now supported.
+
+** Digit separators
+Digit separators are now supported.
+
+** C23 `reproducible` & `unsequenced`
+These C23 attributes are now supported.
+
+** C23 `thread_local`
+In C23, `thread_local` is now used instead of `_Thread_local`.
+
+** C23 `true`, `false`, `nullptr`, `static_assert`, & `thread_local`
+These are now also keywords in C23.
+
+** C23 `typeof` & `typeof_unqual`
+These C23 keywords are now recognized, but not supported by cdecl.
+
+** More C++23 standard types
+Added the standard C++23 types `std::bfloat16_t`, `std::float128_t`,
+`std::float16_t`, `std::float32_t`, `std::float64_t`, `std::ospanstream`,
+`std::spanbuf`, `std::spanstream`, `std::stacktrace`, `std::unexpect_t`,
+`std::wospanstream`, `std::wspanbuf`, and `std::wspanstream`.
+
+** Enumeration bit-fields
+Enumerations in C++ can now be bit fields.
+
+** C++23 explicit object parameters
+Explicit object parameters in C++23 are preliminarily supported.
+
+** C++ `static` `operator()`
+Now allow `operator()` to be `static` in C++23.
+
+** Added `std::bernoulli_distribution` and `std::random_device`
+Added these missing C++11 types.
+
+** `static` or `const` array parameters
+Both `static` or `const` array declarations are now additionally recognized
+outside of function parameters allowing more specific error reporting (since
+they're still illegal).
+
+** C++11 explicit user-defined conversion operators
+Explicit user-defined conversion operators are now correctly allowed in C++11
+and later.
+
+** Echoing commands
+A new `--echo-commands`/`-O` command-line option and `echo-commands` set option
+has been added that echos command given before corresponding output.  (This is
+primarily useful for associating command output with input in test scripts.)
+
+** Better alignment error location
+Improved the location of alignment errors.
+
+** Fixed aligned bit fields
+Aligned bit fields are now correctly forbidden.
+
+** Fixed `noprompt` error column
+Fixed the error column when the prompt is disabled.
+
+** Fixed function returning pointer to member pointer to T
+The output of a declaration like:
+
+    c++decl> declare f as function returning pointer to member of class C \
+        pointer to int
+    int* C::* f();
+
+has been fixed.
+
+** `pointer` auto-completion
+`pointer` is now auto-completable.
+
+** Fixed implicit `int` checking error message
+A declaration omitting `int` now gives the correct error message:
+
+     cdecl> explain void f(register i)
+                           ^
+     16: error: implicit "int" is illegal since C99
+
+** Fixed `const` array
+Array parameters no longer have a space wrongly emitted after `const`.
+
+** Fixed fixed type `enum` definition
+Fixed type `enum` definitions are now printed as C++ correctly.
+
+
+* Changes in Cdecl 12.0
+
+** Added suggestions
+Added suggestions to error messages in certain cases when a keyword is
+expected, for example:
+
+    cdecl> declare x as type poiner to int
+                             ^
+    19: syntax error: "poiner": "as" expected; did you mean "pointer"?
+
+** Better executable name checking
+Previously, if cdecl was invoked as `cast`, `declare`, or `explain`, or with a
+name that isn't a command (through renaming or a hard or a symbolic link)
+without command-line arguments, it behaved as if it were invoked as `cdecl`
+without error.  This has been fixed.
+
+** C23
+The placeholder name of C2X has been changed to C23.
+
+** Color and `TERM`
+The `TERM` environment variable is no longer considered when determining
+whether color should be used in output.  Now, all that matters is whether the
+output stream is connected to a TTY.
+
+** `exit` auto-completion
+The `exit` command is no longer auto-completable enabling `explain` to be auto-
+completed after typing only `ex` rather than `exp` as before.
+
+** `help options` types
+Help for types was added to options help.
+
+** `explicit` help
+The missing `explicit` was added to the help.
+
+** `explicit-escu` for `enum`
+The `explicit-ecsu` option for enums is fixed.
+
+** `include`
+Added a new `include` command to include cdecl commands from files either from
+a configuration file or the cdecl command line.
+
+** `_Noreturn` deprecated
+`_Noreturn` is now deprecated in C23.
+
+** Printing of types
+Now printing types in error messages as they were originally defined (pseudo-
+English vs. gibberish) in more cases.
+
+** Additional sanitizers
+The `configure` options of `--enable-msan` and `--enable-ubsan` have been added
+to enable clang's Memory Sanitizer and Undefined Behavior Sanitizer,
+respectively.  The previous `--enable-address-sanitizer` has been renamed to
+`--enable-asan`.
+
+** `show` autocompletion
+The `show` command now uses command-specific autocompletion.
+
+** Overloading `co_await` operator
+Overloading the `co_await` operator is now supported.
+
+** Predefined types
+Fixed spelling of `bad_typeid`; added `source_location`, `type_index`, and
+`type_info`.
+
+** Types as objects, English edition
+Previously declared types in pseudo-Engilsh are now checked to ensure they're
+not being used as objects:
+
+    cdecl> struct S
+    cdecl> declare S as int             // error (now)
+
+
+* Changes in Cdecl 11.15
+
+** `_Atomic` arrays
+`_Atomic` arrays are now correctly forbidden:
+
+    typedef int A[2]
+    explain _Atomic A x  // error: _Atomic array of T is illegal
+
+Note that:
+
+    _Atomic int x[2];    // OK: array of _Atomic T is legal
+
+is legal.
+
+** `CDECLRC` environment variable
+If none of the `--config`, `-c`, `--no-config`, nor `-C` command line options
+are given and the value of the `CDECLRC` environment variable isn't empty, it's
+used as the full path to the cdeclrc file to read upon start-up.
+
+** Configuration file default language
+Previously, cdecl would temporarily set the current language to the latest
+supported version of C++ while reading a configuration file.  It no longer does
+this as a special case.  Now, as always, it sets the default language based on
+the executable name.
+
+** `enum` alignment in C11
+Alignment of enums is now correctly allowed in C11.
+
+** Types as objects
+Previously declared types are now checked to ensure they're not being used as
+objects:
+
+    cdecl> struct S
+    cdecl> explain int S                // error (now)
+
+
+* Changes in Cdecl 11.14
+
+** Alternative tokens & digraphs
+Now prints a warning that neither alternative tokens nor digraphs are supported
+until C95.  Also now printing a warning if alternative tokens are set and the
+current language changes to one that doesn't support them.
+
+** `east-const` in K&R C
+Now prints a warning that `east-const` isn't supported until C89.
+
+** `using`
+Now prints a warning that `using` isn't supported until C++11.
+
+** Fixed `void f(int())`
+The long-standing issue <https://github.com/paul-j-lucas/cdecl/issues/10> has
+finally been fixed.
+
+** Fixed help message
+The old mention of `files...` in the help messages was removed.
+
+
+* Changes in Cdecl 11.13
+
+** Aligned `enum`, `struct`, and `union` in C
+Alignment of `enum`, `struct`, and `union` is now correctly forbidden in C.
+
+** `alignas` & `_Alignas`
+These keywords are now additionally allowed instead of `aligned [as|to]` in
+pseudo-English.
+
+** Auto-completion of cdecl keywords
+Cdecl keywords are now _not_ auto-completable when explaining gibberish.
+
+** Auto-completion tweaks
+`new` is now auto-completable; `variadic` is now autocompletable only in C89
+and later.  The following are now _not_ autocompletable: `co_await`,
+`co_return`, `co_yield`, `concept`, `decltype`, and `requires`.
+
+** `restrict` of `typedef`
+`restrict` is now correctly allowed on `typedef`s of pointer:
+
+    cdecl> typdef int *pint
+    cdecl> explain restrict pint p
+    declare p as restricted pint
+
+** `return` English shorthand
+`return` is now accepted as a shorthand for `returning` in pseudo-English.
+
+** English new-style cast synonyms
+The C++ keywords `const_cast`, `dynamic_cast`, `reinterpret_cast`, and
+`static_cast` are now synonyms for their respective two-word counterparts in
+pseudo-English.
+
+** Fixed core dump for `--debug`/`-d` for operator
+Fixed a core dump when using the `--debug`/`-d` option for an operator.
+
+** Fixed function returning function parameter crash
+A crash for:
+
+    explain void f( int()() )
+
+(which is illegal) has been fixed.
+
+
+* Changes in Cdecl 11.12
+
+** `noexcept` for function parameters
+`noexcept` is now correctly allowed for pointers to function parameter
+arguments:
+
+    c++decl> explain void g( void (*f)() noexcept )
+    declare g as function (f as pointer to no-exception function returning void) returning void
+
+** Dynamic exception specifications
+These are now parsed, but either not supported by cdecl through C++14 or no
+longer supported in C++17.
+
+** Ignore leading whitespace for command completion
+Previously, if there was any leading whitesplace before a command, that is:
+
+    cdecl>  dec<TAB>
+           ^
+           leading whitespace
+
+it wouldn't match: now it does.
+
+** Fixed interactive column
+The column number printed for error and warning messages while interactive is
+now correct.
+
+
+* Changes in Cdecl 11.11
+
+** `using` with attributes
+Now supporting `using` with attributes:
+
+    c++decl> explain using Int [[maybe_unused]] = int
+    declare Int as maybe unused type int
+
+** Declare types with `using`
+In C++11 and later, types are now declared with `using` instead of `typedef` by
+default.
+
+** `using` declarations
+New `--no-using`/`-u` command-line option and `using` set option that control
+whether types are declared with `using` instead of `typedef` in C++11 and
+later:
+
+    c++decl> declare pint as type pointer to int
+    using pint = int*;
+    c++decl> set nousing
+    c++decl> declare pint as type pointer to int
+    typedef int *pint;
+
+** More K&R C types
+The types `caaddr_t` and `daddr_t` were added; `jmp_buf` was moved from C89.
+
+
+* Changes in Cdecl 11.10
+
+** Pre-C99 implicit `int`
+Added more support for pre-C99 implicit `int`:
+
+    explain *p                          // pointer to int
+    explain *p, i                       // pointer to int, int
+    explain *a[4]                       // array 4 of pointer to int
+    explain *f()                        // function returning pointer to int
+    explain (*p)                        // pointer to int -- unnecessary ()
+
+** `const void` function parameters
+`const` (and `volatile`) qualifiers for `void` as a function "parameter" (even
+via a `typedef`) are now correctly flagged as an error:
+
+    void f1(void);                      // OK
+    void f2(const void);                // error
+
+    typedef void Void;
+    void f3(Void);                      // OK
+
+    typedef const void CVoid;
+    void f4(CVoid);                     // error
+
+** Redefinition check in C++
+C++ doesn't support tentative definitions, so:
+
+    int i, i;                           // OK in C; error in C++
+
+is always an error in C++ even if the types match.
+
+** Restricted pointer to non-object
+A restricted pointer to a non-object, e.g., function, is now correctly flagged
+as an error:
+
+    int (*restrict pf)();               // error
+
+
+* Changes in Cdecl 11.9
+
+** Fixed reading from stdin
+Fixed reading from stdin when it's not a TTY.
+
+** Redefinition check
+Names being redefined with a different type in the same declaration are now
+correctly forbidden:
+
+    int i, i;                           // OK (tentative definition)
+    int j, *j;                          // error: different type
+
+** Function-like parameter redefinition check
+Function-like parameters are now checked for redefinition (more than one
+parameter having the same name).
+
+** More C++23 standard types
+Added the standard C++ types `std::ispanstream`, `std::stacktrace_entry`,
+and `std::wispanstream`.
+
+
+* Changes in Cdecl 11.8
+
+** New cdecl keywords
+There are now the new pseudo-English keywords of `evaluation` (plus `eval` as a
+shorthand), `expression` (plus `expr`), and `initialization` (plus `init`) that
+can optionally be used after `constant` (or `const`) instead of `consteval`,
+`constexpr`, or `constinit`, respectively:
+
+    c++decl> declare f as constant expression function returning int
+    constexpr int f();
+
+There are now the new pseudo-English keywords of `maybe`, `unused`, `thread`,
+`local`, as well as `discard`, `except`, and `return` that can be used after
+`no` that can be used instead of `maybe_unused`, `thread_local`, `nodiscard`,
+`noexcept`, and `noreturn`.
+
+** Fixed reading of stdin
+The "no files as arguments" change broke reading of stdin; fixed.
+
+
+* Changes in Cdecl 11.7
+
+** Cdecl keywords
+When an unexpected name token is encountered, if said token is a cdecl keyword,
+it's now mentioned in the error message:
+
+    cdecl> declare ptr as pointer to void
+                   ^
+    16: syntax error: "ptr": name expected ("ptr" is a cdecl keyword)
+
+Additionally, cdecl keywords are now also offered in suggestions.
+
+** `register` arrays
+`register` arrays are now correctly allowed.
+
+** Zero-sized arrays
+Zero-sized arrays are now correctly forbidden.
+
+** No files as arguments
+Command-line arguments were treated as files if they weren't commands.  This
+dubious use-case was a hold-over from the original cdecl and has been removed.
+(If you want to read a file use -f.)
+
+
+* Changes in Cdecl 11.6
+
+** C++23 integer literal suffixes
+The case-insensitive integer literal suffixes of `uz` and `zu` for `size_t` and
+`z` for `ssize_t` are now supported.
+
+** C++23 `operator[]`
+Now allowing `operator[]` to have zero or more arguments starting in C++23.
+
+** Fixed bug with array of function
+Given:
+
+    cdecl> explain int f[5](double)
+    declare f as function (double) returning int
+
+cdecl (1) incorrectly elided the array and therefore (2) didn't report the
+array of function as an error.
+
+** `typedef` of function
+`typedef`s of function are now correctly allowed:
+
+    typedef int F(void)
+
+
+* Changes in Cdecl 11.5
+
+** Better error/warning locations
+Locations for error and warning messages have been improved.
+
+** `show` error improvement
+The `show` command now correctly prints all possible commands to define a type
+when requested to show a type that doesn't exist.
+
+** `register` warnings
+A deprecated warning is now printed for a `register` array, enum, class,
+struct, union, pointer, pointer to member, reference, and rvalue reference
+between C++11 and C++14.  (Previously, a warning was printed only for built-in
+types and typedefs.)
+
+** K&R function parameter printed as `int`
+For functions having K&R C typeless parameters, `int` is now printed in C89 and
+later since such parameters are implicitly `int`.
+
+** `show using` before C++11
+A `show using` before C++11 now prints an error.
+
+** Help output
+Tweaked help output.
+
+
+* Changes in Cdecl 11.4
+
+** `_Atomic(T)` in C++23
+Now supporting the `_Atomic(T)` macro in C++23.
+
+** Fixed pointer to a `typedef` of `void`
+Declarations like:
+
+    typedef void V
+    explain V *p
+
+are now fixed.
+
+** Allow declarations using unknown scoped type names
+Previously, cdecl complained about things like:
+
+    cdecl> define S as struct S
+    cdecl> explain S::T x
+                      ^
+    19: error: "T": unknown name
+
+Now, it just assumes the `T` is a type:
+
+    declare x as T of structure S
+
+** cvr-qualified `_Atomic`
+`const`-`volatile`-`restrict`-qualified `_Atomic` types are now correctly
+forbidden.
+
+
+* Changes in Cdecl 11.3
+
+** Added `explicit-ecsu` option
+Both a `--explicit-ecsu`/`-S` command-line and `explicit-ecsu` set option have
+been added that set which type keywords `enum`, `class`, `struct`, or `union`,
+are included explicitly in C++ declarations.  The default is `struct` and
+`union` only, so:
+
+    c++decl> declare ps as pointer to struct S
+    struct S *ps;
+    c++decl> declare pt as pointer to class T
+    T *pt;
+
+** Fixed nested array declaration
+Explaining a declaration like:
+
+    explain int (a)[4]
+
+is now fixed.
+
+
+* Changes in Cdecl 11.2
+
+** More C++ cast checks
+`const_cast`, `dynamic_cast`, and `reinterpret_cast` now perform additional
+checks.
+
+** Fixed casting to `void`
+Fixed the ability to cast to `void`.
+
+** Fixed autocompletion crash
+A crash for autocompletion of help options has been fixed.
+
+
+* Changes in Cdecl 11.1
+
+** Multiple declarations
+The `declare` command can now accept multiple names like:
+
+    cdecl> declare p, q as pointer to int
+    int *p, *q;
+
+** Digraph & Trigraph output
+Digraphs and trigraphs are no longer emitted in a language in which they aren't
+supported.
+
+** Help options
+The `help` command now also acceptions `options`.  Help for options is now
+printed separately.
+
+** Help autocompletion
+Help options are now autocompletable.
+
+** Fixed multiple nested declarations crash
+Explaining a declaration like:
+
+    explain int (*p), (*q)
+
+is now fixed.
+
+
+* Changes in Cdecl 11.0
+
+** K&R C function returning `struct`
+Now correctly forbidding functions returning `struct` in K&R C.
+
+** Digraphs before C95
+Either using a digraph or setting the digraphs option in a language before C95
+now prints a warning that digraphs are not supported until C95.
+
+** Trigraphs in K&R C
+Either using a trigraph or setting the trigraphs option in K&R C now prints a
+warning that trigraphs are not supported until C89.
+
+** Optional `()` for `destructor`
+Declaring a destructor in English now optionally allows `()`.
+
+** C++23
+C++23 is both now allowed for and the default C++ version.  However, there are
+as of yet no differences with respect to declarations between it and C++20.
+
+** `inline namespace` command
+`inline` is now a command in C++11 and later (presumed to be followed by
+`namespace`) and `namespace` is auto-completable.
+
+** Nested `inline` namespaces
+C++20's nested inline namespaces are now supported:
+
+    namespace A::inline B { // ...
+
+** `show typedef` & `show using` autocompletion
+The keywords `typedef` and `using` are now auto-completable.
+
+** In-class `default`, `delete`, and `noexcept` constructors
+These are now accepted.
+
+** `static` `main()` in C
+This is now correctly forbidden.
+
+** Fixed C++ raw string literals
+A raw string literal like `R"abc(X)ab)abc"` was previously not parsed
+correctly.
+
+** Fixed multiple pointers to function having a Microsoft calling convention
+Declarations like:
+
+    cdecl> explain int (__stdcall **f)()
+
+are now handled correctly.
+
+** Fixed `typedef` of `void`
+`typedef void V` is now correctly allowed and `V p` is now correctly flagged as
+an error.
+
+** Fixed pointer to `typedef` of reference
+Declarations like:
+
+    typedef int &RI
+    explain RI *p
+
+are now correctly flagged as illegal.
+
+** Fixed array of reference
+An array of reference (or rvalue reference) is now correctly flagged as an
+error.
+
+** Fixed function returning `typedef` of array
+Declarations like:
+
+    typedef int A[2]
+    explain A f()
+
+are now correctly flagged as illegal.
+
+** Fixed "pointer to function returning pointer to array" function argument
+A declaration like `int f(char (*(*)())[])` is now parsed correctly.
+
+** `floating-point`
+This is now an English synonym for `float`.
+
+** `double-precision`
+This is now an English synonym for `double`.
+
+** Microsoft `__forceinline` declarations
+Added support for `__forceinline` (and `_forceinline`), but they're treated as
+`inline`.
+
+** Code coverage
+Running the test suite can now generate a code coverage report via:
+
+    ./configure --enable-coverage
+    make check-coverage
+
+** More types
+Added `cc_t`, `DIR`, `fsblkcnt_t`, `fsfilcnt_t`, `id_t`, `pthread_key_t`,
+`sig_t`, `sighandler_t`, `siginfo_t`, and `timer_t`.
+
+
+* Changes in Cdecl 10.4
+
+** Microsoft calling conventions
+Added support for Microsoft calling conventions __cdecl, __clrcall, __fastcall,
+__stdcall, __thiscall, and __vectorcall.
+
+** Partial support for Microsoft's `__declspec`
+Microsoft C's `__declspec` syntax is now parsed, but otherwise ignored.  (A
+warning is printed that it's ignored.)
+
+** Microsoft `__asm` declarations
+Now recognizing Microsoft's `__asm` just to say it's not supported
+(just like `asm`).
+
+** More Microsoft types
+Added types `__m128`, `__m128d`, `__m128i`, and `__m64`.
+
+** Updated GnuLib for gcc 11
+Pulled a fix from upstream GnuLib to fix a compile error under gcc 11.
+
+
+* Changes in Cdecl 10.3
+
+** Deleted functions and conversion operators
+Marking functions and conversion operators `= delete` is now supported.
+
+** Improved or fixed error messages
+Improved or fixed several error messages.
+
+
+* Changes in Cdecl 10.2
+
+** At most one of `virtual`, `final`, or `override`.
+In C++, at most one of `virtual`, `final`, or `override` is now printed.
+
+** Added `typedef` to help
+`typedef` has been added to the "store" section of English help.
+
+** Pointers to `union` members
+Pointers to `union` members are now allowed.
+
+** `using` forbids type
+`using` declarations now correctly forbid names in the types on the right-hand
+side:
+
+    using U = void (*F)();              // illegal
+
+
+* Changes in Cdecl 10.1
+
+** More robust scoped name type checking
+Scoped names' scope-types are now checked against previous declarations.  For
+example, the second declaration's attempted use of N::C as a namespace is now
+flagged as an error because it was previously declared as a class:
+
+    c++decl> namespace N { class C; }
+    c++decl> namespace N::C { class D; }
+                       ^
+    11: error: "N::C" was previously declared as a class:
+    > namespace N { class C; }
+
+** More C++ std types
+Added types `std::chars_format`, `std::ctype_base::mask`, `std::ios_base`,
+`std::ios_base::event`, `std::ios_base::event_callback`,
+`std::ios_base::fmtflags`, `std::ios_base::Init`, `std::ios_base::iostate`,
+`std::ios_base::openmode`, `std::ios_base::seekdir`, `std::launch`,
+`std::regex_constants::match_flag_type`, and
+`std::regex_constants::syntax_option_type`.
+
+
+* Changes in Cdecl 10.0.1
+
+** Fixed flex-debug build
+A syntax error in the flex-debug build was fixed.
+
+
+* Changes in Cdecl 10.0
+
+** `asm` declarations
+Now recognizing `asm` just to say it's not supported.
+
+** `bootstrap`
+Added a `bootstrap` script.
+
+** No lexer & parser error messages
+When the lexer prints an error message, the parser no longer does.
+
+** Improved `operator<=>`
+Now ensuring return type is one of auto, std::partial_ordering,
+std::strong_ordering, or std::weak_ordering; and that all parameters are a
+class or reference thereto.
+
+** Default relational operators
+Default relational operators in C++20 are now supported.
+
+** C++ raw string literals
+C++'s raw string literals `R"delim(...)delim"` are now supported.
+
+** Relaxed `main()` checks
+If a function named "main" has any storage-like type that can't be used with
+the program's `main()`, assume it's just a member function named "main" and not
+the program's `main()`.
+
+** `main()` return type
+The return type of the program's `main()` is now correctly restricted to `int`.
+
+** `makedoc.sh`
+Added a small script to build the documentation rather than just call Doxygen.
+The script prints the location of the document root and the local file URL.  On
+macOS, also prints the `open` command to run.
+
+** `register struct`
+Declaring a `struct` as `register` is now legal.
+
+
+* Changes in Cdecl 9.10
+
+** Showing globs
+The `show` command now supports globs:
+
+    show foo*         // Show types starting with foo.
+    show s::foo*      // Show types starting with foo in top-level scope s.
+    show s*::foo      // Show foo types in top-level scopes starting with s.
+    show *::foo       // Show foo types in any top-level scope.
+    show **::foo      // Show foo types in any scope.
+
+** "Did you mean ...?" for command-line options
+"Did you mean ...?" suggestions have been added for command-line long options.
+
+** C78 in help
+Added C78 to help text.
+
+** `template` declarations
+Now recognizing `template` just to say it's not supported.
+
+** Fixed "null" for unknown name
+No longer sometime print "null" when an unknown name is encountered.
+
+
+* Changes in Cdecl 9.9
+
+** C78
+C78 is now accepted as an alias for K&RC.
+
+** "Did you mean ...?" for `set` options
+"Did you mean ...?" suggestions have been added for `set` options.
+
+** More predefined types
+Added `iconv_t`, `locale_t`, `posix_spawnattr_t`, `posix_spawn_file_actions_t`,
+`regex_t`, `regmatch_t`, and `regoff_t`.
+
+** Nested types in C
+Nested types:
+
+    struct S { typedef int Int; }
+
+are now correctly caught as an error in C.
+
+** Pointer-to-function qualifiers
+A pointer to function with qualifiers, e.g.:
+
+    int (*f)() const                    // illegal
+
+is now correctly caught as an error.
+
+** Scoped name bit-fields
+A scoped name having a bit-field width:
+
+    int S::x : 3                        // illegal
+
+is now correctly caught as an error.
+
+** Storage class bit-fields
+A declaration having a storage class and a bit-field width:
+
+    static int x : 3                    // illegal
+
+is now correctly caught as an error.
+
+
+* Changes in Cdecl 9.8
+
+** Added `extern "C" using` support
+`extern "C" using` declarations are now supported.
+
+** C++ `auto` help
+The help for pseudo-English now correctly includes `auto` as a storage class
+for C++98 and C++03.
+
+** Adding `--explicit-int` to `--help`
+Added (the missing) `--explicit-int` to the help message.
+
+** Added `Doxyfile` to tarball
+Added (the missing) `Doxyfile` to the dist-generated tarball.
+
+
+* Changes in Cdecl 9.7
+
+** Multi-type `typedef`
+Multiple types can now be declared in a single `typedef`:
+
+    typedef int Int, *Pint;
+
+** New abbreviations
+There are new abbreviations:
+
+    conv  conversion
+    ctor  constructor
+    dtor  destructor
+
+** Qualified pointer spacing
+Fixed spacing for qualified pointers.
+
+
+* Changes in Cdecl 9.6
+
+** Specific languages in error messages
+Rather than just say "<feature> is not supported in <current-lang>", now says
+"<feature> is not supported until <later-lang>."
+
+** More constructor & destructor warning checks
+Constructors and destructors are now checked for `throw`.  Constructor
+parameters are now checked for warnings.
+
+** Reserved identifier warnings
+Warnings are now given for names that are reserved identifiers, specifically
+names that match the patterns `_[A-Z_]*` (C and C++) or `*__*` (C++ only).
+
+** Type redefinition error now includes existing type
+If you attempt to redefine an existing type with a different type, the error
+message now includes the existing type.
+
+** Fixed `thread_local`
+`thread_local` is now correctly allowed only in C11 or C++11 or later.
+
+** Function `auto` parameters in C++20
+Functions in C++20 now allow `auto` parameters.
+
+** `_Bool`
+`_Bool` is now recognized only in C99 and later and not in C++.
+
+** `imaginary`
+`imaginary` is now mapped only to `_Imaginary` in C99 and later and not in C++.
+
+** `throw()` in C++20
+`throw()` is no longer supported in C++20.
+
+** Fixed `args` help
+The help for `args` no longer prints `<name>` for when the current language is
+either C2X or C++.
+
+
+* Changes in Cdecl 9.5.1
+
+** Functions as parameters
+A function as a parameter is now automatically converted to a pointer to
+function per 6.3.2.1(4) of the C standard.
+
+** `[[` and `]]` "tokens" allow whitespace
+The `[[` and `]]` "tokens" now allow whitespace between them (since they're not
+distinct tokens).
+
+** `AX_CHECK_COMPILE_FLAG`
+Replaced used of `AX_CFLAGS_GCC_OPTION` with `AX_CHECK_COMPILE_FLAG`.
+
+
+* Changes in Cdecl 9.5
+
+** Added `enum`, `class`, `struct`, and `union` attribute specifier support
+Attributes can now also be specified for `enum`, `class`, `struct`, and `union`
+declarations:
+
+    cdecl> explain [[maybe_unused]] struct S x // previously supported
+    cdecl> explain struct [[maybe_unused]] S x // now also supported
+
+Unfortunately, the resulting English is the same for both:
+
+    declare x as maybe-unused structure S
+
+because there's no other (obvious) way to word the English so it's different
+between cases.
+
+** "Did you mean ...?" for attributes
+"Did you mean ...?" suggestions have been added for misspelled attributes.
+
+** Improved "unknown" error messages
+When a name is unknown in the current language but exists in a later language,
+the type of name is now used in the error message.
+
+** Added fixed-type `enum` support
+Fixed-type enumerations are now supported:
+
+    c++decl> explain enum E : char8_t
+    define E as enumeration E of type char8_t
+
+** Added `extern "C"` support
+`extern "C"` declarations are now supported.
+
+** Added C2X `__attr__` aliases
+In C2X, the attribute aliases of `__deprecated__`, `__maybe_unused__`, and
+`__nodiscard__` are now supported.
+
+** Added support for parsing C++ attribute arguments
+Arguments for attributes are now parsed, but otherwise ignored. (A warning is
+printed that it's ignored.)
+
+** Added support for parsing C++17 `using` in attributes
+The optional `using` in attributes is now parsed, but otherwise ignored. (A
+warning is printed that it's ignored.)
+
+** Added support for parsing GNU `__attribute__`
+GNU C's `__attribute__` syntax is now parsed, but otherwise ignored.  (A
+warning is printed that it's ignored.)
+
+** Fixed `auto` with storage class
+The storage class in a declaration like:
+
+    c++decl> explain static auto f() -> int
+    declare f as static function returning int
+
+is now correctly included.
+
+** Fixed `register enum`
+Enumerations were wrongly forbidden from being `register`.
+
+
+* Changes in Cdecl 9.4
+
+** Improved constructor & destructor declaration support
+Inline file-scope and defaulted & deleted in-class constructors & destructors
+are now supported; `final` & `override` are now supported for destructors.
+
+** Explaining forward declarations
+Forward `enum`, `class`, `struct`, and `union` declarations are now supported:
+
+    cdecl> explain struct S
+    define S as struct S
+
+** Catching types having bit-field widths
+Types having bit-field widths are now correctly reported as errors.
+
+** Fixed showing as `using`
+Fixed showing of types having qualified pointers as `using` declarations.
+
+** More predefined types
+Added `constraint_handler_t` and `lconv`.
+
+** Fixed `char** f()` crash
+Explaining this declaration now works.
+
+
+* Changes in Cdecl 9.3
+
+** Bit-fields
+Declarations with bit-field widths are now supported:
+
+    cdecl> explain unsigned x : 3
+    declare x as unsigned int width 3 bits
+
+** Digraph warning
+A warning is given if the digraph option is set and the current language is C89
+or earlier.
+
+
+* Changes in Cdecl 9.2
+
+** In-class constructor declarations
+In-class constructor declarations without any storage-class-like type are now
+supported:
+
+    c++decl> explain C(int)
+    declare C as constructor (int)
+
+** Context-senstive `final` & `override`
+Both `final` and `override` are now recognized as keywords only in a member
+function declaration context:
+
+    c++decl> explain int final
+    declare final as int
+    c++decl> explain void f() final
+    declare f as final virtual member function returning void
+
+
+* Changes in Cdecl 9.1
+
+** K&R C typedefs
+K&R C now has a set of predefined `typedef` declarations distinct from C89 that
+include only those shown in the first edition of _The C Programming Language_.
+
+** K&R C `main()` arguments
+The arguments of main() are no longer checked for type in K&R C.
+
+** `main()` third argument
+A third argument of either:
+
+    char *envp[]
+    char **envp
+
+(or `const` versions) for `main()` is now supported.
+
+** K&R C functions
+Implicit `int` functions in K&R C are now supported:
+
+    cdecl> set knrc
+    cdecl> explain f(x)
+    declare f as function (x) returning int
+
+Additionally, if `returning` _english_ is omitted, it's equivalent to
+`returning int` in C95 and earlier.
+
+** Language-version-specific help
+Help is now specific to particular language versions, not just C or C++.
+
+** `show english`
+The `show` command now allows `english` explicitly as an option.  (Since it's
+the default, it's ignored.)
+
+** "Did you mean ...?" improvements
+"Did you mean ...?" suggestions have been added for `explain` and type
+suggestions are only those valid in the current language.
+
+** Additional `no-` English synonyms
+The English synonyms of `no-return`, `no-except`, `no-discard`, and `no-unique-
+address` have been added.
+
+
+* Changes in Cdecl 9.0
+
+** Showing as `using` declarations
+The `show` command can now alternatively show types as `using` declarations.
+
+** Language-sensitive `show` command
+For `predefined` or `user`, the `show` command now shows only types that are
+valid in the current language.  (See the man page for details.)
+
+** Language-sensitive type printing
+When printing `enum`, `struct`, `class`, or `union` types, they are shown
+differently depending on what language the type was defined in and whether the
+current language is C or C++:
+
+    c++decl> define S as struct S
+    c++decl> show user typedef
+    struct S;
+    c++decl> set c
+    cdecl> show all user typedef
+    typedef struct S S;
+
+** co_await, co_return, co_yield added
+These C++20 keywords were added to prevent use as identifiers in C++20 and warn
+in older languages.
+
+
+* Changes in Cdecl 8.3
+
+** "Did you mean ...?" added
+If you make a typographical error for either commands or type names, you'll now
+receive "did you mean?" suggestions as part of the error message.
+
+** Multiple, comma-separated declarations
+Multiple, comma-separated declarations are finally supported.
+
+** C17
+The official informal name for ISO/IEC 9899:2018 is now C17 instead of C18.
+However, C18 is still accepted as an alias for C17.
+
+** C90
+C90 is now accepted as an alias for C89.
+
+
+* Changes in Cdecl 8.2
+
+** Added `align`
+Pseudo-English now allows `align` as a synonym for `aligned`.
+
+** Multiple `set` options
+The `set` command can now take multiple options.
+
+** Show abbreviated form
+When showing types in pseudo-English, the abbreviated form is used, e.g.:
+
+    cdecl> show
+    struct S;                           // instead of: typedef struct S S;
+
+** Type-qualified arrays of unspecified size
+C99 type-qualified array function arguments can now have a size omitted, e.g.:
+
+    void f( int a[const] );
+
+
+* Changes in Cdecl 8.1
+
+** Enum declarations
+Enumerations can now be declared in the same abbreviated manner as classes:
+
+    enum E
+    enum class E2
+
+** Unified Parallel C support
+Added support for Unified Parallel C:
+
++ Added qualifiers "relaxed", "shared", and "strict".
++ However, for the "shared" qualifier, the optional layout qualifier is parsed
+  but otherwise ignored.
+
+Since the Unified Parallel C standard is based on C99, support for Unified
+Parallel C is available only when the language is set to C99.
+
+** Restricted references
+GNU C++ allows references to be restricted:
+
+    void f( int &__restrict r )
+    void g( int &&__restrict rr )
+
+Now, cdecl does too.
+
+** More C++ std types
+Added types std::adopt_lock_t, std::align_val_t, std::ambiguous_local_time,
+std::atomic_bool, std::atomic_char, std::atomic_char16_t, std::atomic_char32_t,
+std::atomic_char8_t, std::atomic_flag, std::atomic_int, std::atomic_int16_t,
+std::atomic_int32_t, std::atomic_int64_t, std::atomic_int8_t,
+std::atomic_int_fast16_t, std::atomic_int_fast32_t, std::atomic_int_fast64_t,
+std::atomic_int_fast8_t, std::atomic_int_least16_t, std::atomic_int_least32_t,
+std::atomic_int_least64_t, std::atomic_int_least8_t, std::atomic_intmax_t,
+std::atomic_intptr_t, std::atomic_llong, std::atomic_long,
+std::atomic_ptrdiff_t, std::atomic_schar, std::atomic_short,
+std::atomic_signed_lock_free, std::atomic_size_t, std::atomic_uchar,
+std::atomic_uint, std::atomic_uint16_t, std::atomic_uint32_t,
+std::atomic_uint64_t, std::atomic_uint8_t, std::atomic_uint_fast16_t,
+std::atomic_uint_fast32_t, std::atomic_uint_fast64_t, std::atomic_uint_fast8_t,
+std::atomic_uint_least16_t, std::atomic_uint_least32_t,
+std::atomic_uint_least64_t, std::atomic_uint_least8_t, std::atomic_uintmax_t,
+std::atomic_uintptr_t, std::atomic_ullong, std::atomic_ulong,
+std::atomic_unsigned_lock_free, std::atomic_ushort, std::atomic_wchar_t,
+std::bad_alloc, std::bad_any_cast, std::bad_array_new_length, std::bad_cast,
+std::bad_exception, std::bad_function_call, std::bad_optional_access,
+std::bad_type_id, std::bad_variant_access, std::bad_weak_ptr, std::byte,
+std::chrono::choose, std::chrono::day, std::chrono::file_clock,
+std::chrono::gps_clock, std::chrono::high_resolution_clock,
+std::chrono::is_clock, std::chrono::last_spec, std::chrono::leap_second,
+std::chrono::local_info, std::chrono::local_t, std::chrono::month,
+std::chrono::month_day, std::chrono::month_day_last,
+std::chrono::month_weekday, std::chrono::month_weekday_last,
+std::chrono::nonexistent_local_time, std::chrono::steady_clock,
+std::chrono::sys_info, std::chrono::system_clock, std::chrono::tai_clock,
+std::chrono::time_zone, std::chrono::time_zone_link, std::chrono::tzdb,
+std::chrono::tzdb_list, std::chrono::utc_clock, std::chrono::weekday,
+std::chrono::weekday_indexed, std::chrono::weekday_last, std::chrono::year,
+std::chrono::year_month, std::chrono::year_month_day,
+std::chrono::year_month_day_last, std::chrono::year_month_weekday,
+std::chrono::year_month_weekday_last, std::codecvt_base,
+std::condition_variable, std::condition_variable_any, std::ctype_base,
+std::cv_status, std::defer_lock_t, std::domain_error, std::error_category,
+std::error_code, std::error_condition, std::filebuf,
+std::filesystem::copy_options, std::filesystem::directory_entry,
+std::filesystem::directory_iterator, std::filesystem::directory_options,
+std::filesystem::file_status, std::filesystem::filesystem_error,
+std::filesystem::file_type, std::filesystem::path,
+std::filesystem::perm_options, std::filesystem::perms,
+std::filesystem::recursive_directory_iterator, std::filesystem::space_info,
+std::format_error, std::fstream, std::future_errc, std::future_error,
+std::future_status, std::ifstream, std::invalid_argument, std::ios,
+std::ios_base::failure, std::iostream, std::istream, std::istringstream,
+std::length_error, std::locale, std::logic_error, std::messages_base,
+std::money_base, std::mutex, std::nonstopstate_t, std::ofstream, std::ostream,
+std::ostringstream, std::osyncstream, std::out_of_range, std::overflow_error,
+std::range_error, std::recursive_mutex, std::recursive_timed_mutex, std::regex,
+std::regex_error, std::runtime_error, std::shared_mutex,
+std::shared_timed_mutex, std::stop_source, std::stop_token, std::streambuf,
+std::stringbuf, std::stringstream, std::string_view, std::syncbuf,
+std::system_error, std::time_base, std::timed_mutex.  std::try_to_lock_t,
+std::u16string_view, std::u32string_view, std::u8string_view,
+std::underflow_error, std::wfilebuf, std::wfstream, std::wifstream, std::wios,
+std::wiostream, std::wistream, std::wistringstream, std::wofstream,
+std::wostream, std::wostringstream, std::wosyncstream, std::wregex,
+std::wstreambuf, std::wstringbuf, std::wstringstream, std::wstring_view, and
+std::wsyncbuf.
+
+** Fixed class declarations
+Declaring a class as either:
+
+    class C1
+    class C2;
+
+now works.
+
+
+* Changes in Cdecl 8.0
+
+** C2X support
+Added support for C2X:
+
++ Added type char8_t.
++ Added [[...]] syntax for attributes.
++ Added [[deprecated]], [[maybe_unused]], and [[nodiscard]] attributes.
++ Removed support for typeless function arguments in K&R C.
+
+** More C++20 support
+Added support for "constinit" and "export" in C++20.
+
+** Embedded C support
+Added support for Embedded C:
+
++ Added types "_Accum" and "_Fract" (and "accum" and "fract").
++ Added modifier "_Sat" (and "sat" and "saturated").
++ Added the typedefs int_hk_t, int_hr_t, int_k_t, int_lk_t, int_lr_t, int_r_t,
+  uint_uhk_t, uint_uhr_t, uint_uk_t, uint_ulk_t, uint_ulr_t, and uint_ur_t.
+
+Since the Embedded C standard is based on C99, support for Embedded C is
+available only when the language is set to C99.
+
+** Forbidding attribute syntax
+The [[xxx]] attribute syntax is now forbidden until either C2X or C++11.
+
+** class, struct, & union optional ';'
+Semicolons are now optional after "class", "struct", or "union" declarations.
+
+** class, struct, & union define themselves
+Before now:
+
+    class C { typedef int Int; }
+
+would define only C::Int as a type.  Now, the enclosing class, struct, or union
+is also defined as a type.  Hence, the above is now equivalent to:
+
+    define C as class C
+    define C::Int as int
+
+This also means that either:
+
+    class C { }
+    class C
+
+is eqivalent to:
+
+    define C as class C
+
+** class, struct, & union commands
+"class", "struct", and "union" are now commands (just like namespace).
+
+** Per-scope types; fixed English scope name order
+Each scope of a scoped name (sname) now has its own type.  Additionally, the
+English printed order is now (correctly) inner-to-outermost.  For example:
+
+    c++decl> namespace N { class C { typedef int I; }; }
+    c++decl> explain N::C::I x
+    declare x as I of class C of namespace N
+
+** Floating-point extensions for C types
+Added types _Decimal32_t, _Decimal64_t, _Decimal64x, _Decimal128x, _Float32,
+_Float32x, _Float64, _Float128, _Float128x, femode_t, and long_double_t.
+
+** Aligned to
+Now allowing "to" in addition to "as" for "... aligned [as|to] ...".
+
+** Show as
+Now allowing an optional "as" in "show ... [as] typedef".
+
+** asm
+Added "asm" keyword to prevent declarations from using it.
+
+
+* Changes in Cdecl 7.4.1
+
+** Allowing signed main()
+The legal "signed main()" signature is now accepted.
+
+** Ignoring east-const in English
+East const is now ignored when explaining gibberish.
+
+** Disallowing reference to reference
+References to references are now errors.
+
+
+* Changes in Cdecl 7.4
+
+** Bison debugging change
+Changed --enable--yydebug configure option to --enable-bison-debug,
+--yydebug/-y cdecl options to --bison-debug/-B, and yydebug to bison-debug set
+option.
+
+** Added Flex debugging
+Added --enable-flex-debug configure option, --flex-debug/-F cdecl options, and
+flex-debug set option.
+
+** Fixed set options
+Finally fixed parsing of set options.
+
+
+* Changes in Cdecl 7.3
+
+** Checking main()'s signature
+The signature of main() is now checked.
+
+** More C standard types
+Added the standard C types atomic_flag, double_t, fenv_t, fexcept_t, float_t,
+jmp_buf, memory_order, va_list, wctrans_t, and wctype_t.
+
+** Fixed explaining pointer-to-array function arguments
+Explaining a declaration like:
+
+    cdecl> explain void f(double (*a)[5])
+
+crashed; fixed.
+
+
+* Changes in Cdecl 7.2
+
+** new & delete operator overloading
+Added support for composing and deciphering C++ overloaded new, new[], delete,
+and delete[] operators.
+
+** extern & static functions
+Extern or static functions can not be const.
+
+** English scoped types
+Given:
+
+    struct S { typedef int Int; }
+    explain S::Int x
+
+the explanation is:
+
+    declare x as Int of structure S
+
+but English types ("T of ...") weren't legal in cdecl's grammar.  They are now.
+
+** More C++ std types
+Added types std::align_val_t, std::destroying_delete_t, and std::nothrow_t.
+
+** throw() put back
+"throw" is still a keyword so it was put back in C++20.
+
+** Fixed user-defined literal argument
+Explicitly specifying "int" is now accepted.
+
+
+* Changes in Cdecl 7.1
+
+** Added more GNU extensions
+Added GNU C's __complex, __complex__, __const, __inline, __restrict, __signed,
+__signed__, __volatile, and __volatile__.
+
+* _Bool in C
+In C, _Bool is now emitted rather than bool.
+
+* register removed
+register is now removed (but still reserved) in C++17 and later.
+
+
+* Changes in Cdecl 7.0
+
+** East const
+New -E/--east-const command-line and east-const set options to use "east const"
+in gibberish:
+
+    cdecl> declare x as const int
+    int const x;
+
+** Correct scope names for nested types
+Previously, scope names for nested types were always printed as "of scope"; now
+they print the type of scope ("class", "struct", "union", or "namespace"):
+
+    c++decl> struct S { typedef int Int; };
+    c++decl> explain S::Int x
+    declare x as Int of structure S
+
+** Declare const/volatile user-defined conversion operators
+Can now declare const/volatile user-defined conversion operators.
+
+** no_unique_address
+Added support for the [[no_unique_address]] attribute in C++20.
+
+** Typename
+Now allowing "typename" in declarations (even though it's not needed):
+
+    struct S { typedef int I; };
+    explain typename S::I x
+    typedef typename S::I T
+
+** throw() deprecated/removed
+throw() has been deprecated starting with C++11 and removed in C++20.
+
+** Fixed unknown type in typedef
+Fixed a crash caused by a case like:
+
+    define S as struct S
+    explain S::T x
+
+
+* Changes in Cdecl 6.11
+
+** Added __inline__, __restrict__, and __thread
+Added GNU C's __inline__, __restrict__, and __thread.
+
+** Added GNU C types
+The GNU C types _Decimal32, _Decimal64, _Decimal128, _Float128, __float128,
+_Float16, __fp16, __ibm128, _Float64x, __float80, and __int128 were added to
+the set of predefined types.
+
+** Added Win32 types
+All of the Windows types, e.g., DWORD, HANDLE, INT, etc., given here
+<https://docs.microsoft.com/en-us/windows/win32/winprog/windows-data-types>
+were added to the set of predefined types.
+
+** Fixed retypedef
+Fixed a crash caused by a case like:
+
+    typedef int I
+    typedef I J
+    typedef I J
+
+
+* Changes in Cdecl 6.10
+
+** Added __auto_type
+Added GNU C's __auto_type.
+
+** Fixed "long long" C version
+The "long long" type was incorrectly allowed in C89; it wasn't added until C99.
+
+** Added pthread.h, threads.h, and C++ thread types
+The types pthread_t, pthread_barrier_t, pthread_barrierattr_t, pthread_cond_t,
+pthread_condattr_t, pthread_mutex_t, pthread_mutexattr_t, pthread_once_t,
+pthread_rwlock_t, pthread_rwlockattr_t, and pthread_spinlock_t from <pthread.h>
+(POSIX); the types thrd_t, cnd_t, mtx_t, once_flag, thrd_start_t, tss_dtor_t,
+and tss_t from <thread.h> (C11); and std::thread (C++11) and std::jthread
+(C++20) from <thread> were added to the set of predefined types.
+
+
+* Changes in Cdecl 6.9
+
+** Cast accepts "as" and "to"
+The "cast" command now accepts "as" and "to" in addition to "into".
+
+** Autocomplete of explain-by-default
+Autocomplete was missing explain-by-default; fixed.
+
+
+* Changes in Cdecl 6.8.2
+
+** Explain-by-default for const and static
+When in explain-by-default mode, a special case has to be made for const and
+static since explain is implied only when NOT followed by "cast":
+
+    const int *p                        // Implies explain.
+    const cast p into pointer to int    // Does NOT imply explain.
+
+
+* Changes in Cdecl 6.8.1
+
+** Reset lexer start-state
+In 6.8, start states were added to the lexer.  Resetting the lexer now includes
+also resetting the start state.
+
+
+* Changes in Cdecl 6.8
+
+** Added set lang=<lang>
+Since the set explicit-int option was added (an option that takes a value), a
+set lang=<lang> option was added.
+
+
+* Changes in Cdecl 6.7
+
+** Explicit int in English
+Previously when explaining integer declarations, "int" was implicit:
+
+    cdecl> explain unsigned x
+    declare x as unsigned
+
+Now "int" is explicit:
+
+    cdecl> explain unsigned x
+    declare x as unsigned int
+
+** Added explicit-int option
+Both a command-line --explicit-int/-I and explicit-int set option have been
+added that set which integer types have "int" explicitly included in
+declarations.
+
+
+* Changes in Cdecl 6.6.2
+
+** Added atomic_char8_t
+Added atomic_char8_t typedef for C++20.
+
+** Fixed flex & bison dependency
+Now insists on flex & bison only when lexer.c & parser.c don't exist (i.e.,
+when building from a git clone that doesn't include those files rather than an
+official release that does).
+
+** Explicit structure definition error
+Structure declarations (that were never supported) now produce a specific error
+message:
+
+    cdecl> explain struct S { int x; };
+                            ^
+    18: error: structure definitions are not supported
+
+** Fixed libreadline/libcurses dependency
+Moved check for libcurses before libreadline since some implementations of the
+latter depend on the former (e.g., Solaris 11).
+
+** More gcc warnings
+Enabled more gcc warnings and fixed them.
+
+** thread-local
+Added this (with a '-') as an English synonym for thread_local (with an '_').
+
+
+* Changes in Cdecl 6.6.1
+
+** Fixed upgrade install
+When installing an upgrade, no longer fails when a c++decl symbolic link
+already exists.
+
+
+* Changes in Cdecl 6.6
+
+** Defaulted & deleted support
+Defaulted & deleted special member functions are now supported.
+
+** Explain-by-default option
+Both a command-line --explain/-e and explain-by-default set option have been
+added that assume a command that doesn't start with any command means "explain."
+
+** Set option abbreviations
+Unambiguous set option name abbreviations may now be used.
+
+** Virtual constexpr
+Virtual constexpr declarations are now only correctly allowed in C++20.
+
+
+* Changes in Cdecl 6.5.1
+
+** Complete storage-class-like constructors
+Previously, only "explicit" was supported for constructors.  Now all of
+constexpr, explicit, friend, inline, and noexcept (or throw()) are supported.
+
+
+* Changes in Cdecl 6.5
+
+** Much better alternative tokens support
+Alternative tokens (and, and_eq, etc.) are now parsed correctly in all cases.
+Additionally, alternative tokens can be emitted via the new set alt-tokens
+option.
+
+** Changed -q to -p
+The --quiet and -q options (that were in the original cdecl) were changed to
+--no-prompt and -p so they're more explicit about what they do.
+
+** Trigraphs warning
+If the trigraphs option is set and the language is C++17 or later, a warning
+will be printed (since trigraphs were removed from C++17).
+
+** Set command output changed
+The "set" command now only prints the current options.  Its help has beed added
+to the "help" command.
+
+** Better K&R C prototypes error
+The error message given when attempting to use function prototypes in K&R C has
+been improved.
+
+
+* Changes in Cdecl 6.4.2
+
+** Fixed 32-bit CPU support
+Now (again) supports running on 32-bit platforms.
+
+** More help
+The --help option now prints long options and project URLs.
+
+
+* Changes in Cdecl 6.4.1
+
+** Fixed use of GNU Readline
+Several things relating to the use of GNU Readline were fixed.
+
+
+* Changes in Cdecl 6.4
+
+** Added support for user-defined conversion operators
+Now supports C++ user-defined conversion operators.
+
+    cdecl> explain operator int const*() const
+    declare constant user-defined conversion operator returning pointer to constant int
+
+** Added support for alignment specifiers
+Now supports C11 _Alignas and C++11 alignas specifiers.
+
+    cdecl> explain _Alignas(64) int x
+    declare x as int aligned as 16 bytes
+
+** Added more predefined typedefs
+More predefined typedefs were added: fd_set, nfds_t, and sigset_t.
+
+
+* Changes in Cdecl 6.3.2
+
+** Added missing "virtual" for destructor
+Added "virtual" that was missing from the help and man page for destructor.
+
+
+* Changes in Cdecl 6.3.1
+
+** Added support for noexcept constructors
+Constructors can now be noexcept.
+
+** Added support for noexcept and virtual destructors
+Destructors can now be noexcept and/or virtual.
+
+
+* Changes in Cdecl 6.3
+
+** Added support for constructors & destructors
+Now supports C++ constructors & destructors.
+
+** Split up help command output
+The output of the "help" command has been split into "command" and "english"
+because the output has gotten too big for an 80x24 screen.
+
+
+* Changes in Cdecl 6.2
+
+** Added C++11 user-defined literal support
+Added support for user-defined literals.  For example:
+
+    cdecl> explain int operator"" _a(unsigned long long x)
+    declare _a as user-defined literal (x as unsigned long long) returning int
+
+** More commands as first argument
+More commands (define, namespace, set, static, typedef, and using) are now
+recognized as such when they are the first argument.
+
+** Added support for char8_t
+Now supports C++20's char8_t.
+
+** Added support for more standard types
+Added typedef declarations for div_t, imaxdiv_t, ldiv_t, lldiv_t, sig_atomic_t,
+streambuf, streamoff, streamsize, and wstreambuf.
+
+
+* Changes in Cdecl 6.1
+
+** Final or override now implies virtual
+Either final or override in a function's signature now implies it's virtual:
+
+    cdecl> explain void f() override
+    declare f as overridden virtual member function returning void
+
+
+* Changes in Cdecl 6.0.2
+
+** Added strndup()
+Added Gnulib's strndup() for systems that don't have it.
+
+** Fixed cast warning
+Fixed "cast to pointer from integer of different size" on some compilers.
+
+
+* Changes in Cdecl 6.0.1
+
+** Fixed undefined uint64_t
+Fixed a compile-time error on some platforms.
+
+
+* Changes in Cdecl 6.0
+
+** Added C++ scoped name support
+Added support for scoped names in C++.  For example:
+
+    cdecl> explain int S::x
+    declare x of scope S as int
+    cdecl> define S::T as struct T; explain S::T x
+    declare x as T of scope S
+
+** Added partial namespace support
+Specifically, you can now perform typedef and using declarations within
+namespaces or inline namespaces:
+
+    c++decl> namespace S { inline namespace T { typedef int Int; } }
+    c++decl> show user typedef
+    namespace S::T { typedef int Int; }
+
+
+* Changes in Cdecl 5.2
+
+** Added digraph and trigraph support
+Added support for digraphs and trigraphs.
+
+
+* Changes in Cdecl 5.1
+
+** Added C++20 support
+Specifically, consteval functions, operator<=>(), and predefined typedefs were
+added: partial_ordering, strong_equality, strong_ordering, weak_equality, and
+weak_ordering.
+
+** Added C17 support
+Since C17 is only a bugfix version, "C17" is merely recognized as a valid
+version of C.
+
+
+* Changes in Cdecl 5.0
+
+** Added all C/C++ keywords
+All C/C++ keywords have been added to the lexer/parser to prevent declaring
+variables or functions having names that are keywords.  For example:
+
+    declare break as int
+
+is now correctly reported as an error.
+
+Additionally, names that are keywords is later versions of C/C++, while legal,
+now issue warnings, e.g.:
+
+    cdecl> declare class as int
+                   ^
+    18: warning: "class" is a keyword in C++98
+    int class;
+
+** Operator overloading
+Added support for composing and deciphering C++ overloaded operators:
+
+    c++decl> explain bool operator()() const override
+    declare () as overridden virtual constant member operator returning bool
+
+** Fixed const/volatile reference
+Declarations of the form:
+
+    declare r as const reference to int
+    declare r as volatile reference to int
+
+are now correctly reported as an error.
+
+** Added member/non-member to functions
+You can now explcitly specify either "member" or "non-member" in declarations:
+
+    declare f as const member function
+
+Additionally, cdecl will include "member" in function explanations when it can
+infer a function is a member function:
+
+    cdecl> explain void f() const
+    declare f as constant member function returning void
+
+** Fixed friend const/volatile/override/final/virtual/reference functions
+Declarations of the form:
+
+    declare f as friend const function returning bool
+
+are now correctly reported as an error.
+
+
+* Changes in Cdecl 4.8.1
+
+** Fixed ^ position
+An error in a second (or subsequent) command after a ';', e.g.:
+
+    typedef int Int; show foo
+
+now correctly positions the ^.
+
+
+* Changes in Cdecl 4.8
+
+** Show command improvement
+The show command can now show the definition of a type in English (same as
+before, but now the default) or in gibberish as a typedef (new, optional).
+
+Note also that the trailing "types" keyword has been removed from the command:
+it wasn't needed.
+
+
+* Changes in Cdecl 4.7
+
+** Added more predefined types
+More predefined typedefs were added: blkcnt_t, blksize_t, clockid_t, clock_t,
+dev_t, errno_t, FILE, fpos_t, gid_t, in_addr_t, ino_t, in_port_t, mbstate_t,
+mode_t, nlink_t, off_t, pid_t, rlim_t, rsize_t, sa_family_t, socklen_t,
+suseconds_t, time_t, uid_t, useconds_t, and wint_t.
+
+
+* Changes in Cdecl 4.6.1
+
+** Fixed explaining of unnamed array function arguments
+Explaining unnamed array function arguments like:
+
+    void f(char[])
+
+now works.
+
+
+* Changes in Cdecl 4.6
+
+** Explain using declarations
+Added support for explaining C++11's "using" declarations.
+
+
+* Changes in Cdecl 4.5
+
+** Using declarations
+Added support for C++11's "using" declarations as a synonym for typedef.
+
+
+* Changes in Cdecl 4.4.3
+
+** Minor fix to red-black tree code
+Now initializing node->parent to NIL.
+
+
+* Changes in Cdecl 4.4.2
+
+** Fixed declare of function with an invalid argument
+A declaration like:
+
+    declare f as function (x as unknown_type)
+
+now correctly reports the unknown type.
+
+
+* Changes in Cdecl 4.4.1
+
+** Fixed typedef of pointer-to-function
+A typedef like:
+
+    typedef void (*f)(int)
+
+now works correctly.
+
+** Added CONFIGURATION FILE section
+The cdecl(1) man page now contains a CONFIGURATION FILE section.
+
+
+* Changes in Cdecl 4.4
+
+** Added C++ attribute specifier support
+The C++ attrribute specifiers carries_dependency, deprecated, noreturn,
+maybe_unused, and nodiscard are now supported.
+
+
+* Changes in Cdecl 4.3
+
+** Added C99 _Imaginary number support
+C99 _Imaginary number declarations are now supported.
+
+** External
+The keyword "external" is now a synonym for "extern".
+
+** More English for explain
+More English synonyms are used in explanations, e.g.:
+
+    declare x as automatic
+    declare x as constant int
+    declare x as enumeration E
+    declare x as structure S
+
+
+* Changes in Cdecl 4.2
+
+** Added noexcept and throw() support
+Function declarations may now include exception specifications.
+
+** Fixed handling of leading whitespace in command-line argument
+The unusual case of:
+
+    cdecl ' declare x as int'
+
+i.e., a quoted argument having leading whitespace, is now handled correctly.
+
+
+* Changes in Cdecl 4.1
+
+** New C11 standard atomic types
+The following C11 atomic types are now supported via the new typedef command:
+atomic_bool, atomic_char, atomic_schar, atomic_char16_t, atomic_char32_t,
+atomic_wchar_t, atomic_short, atomic_int, atomic_long, atomic_llong,
+atomic_uchar, atomic_ushort, atomic_uint, atomic_ulong, atomic_ullong,
+atomic_ptrdiff_t, atomic_size_t, atomic_intmax_t, atomic_intptr_t,
+atomic_uintptr_t, atomic_uintmax_t, atomic_int_fast8_t, atomic_int_fast16_t,
+atomic_int_fast32_t, atomic_int_fast64_t, atomic_uint_fast8_t,
+atomic_uint_fast16_t, atomic_uint_fast32_t, atomic_uint_fast64_t,
+atomic_int_least8_t, atomic_int_least16_t, atomic_int_least32_t,
+atomic_int_least64_t, atomic_uint_least8_t, atomic_uint_least16_t,
+atomic_uint_least32_t, and atomic_uint_least64_t.
+
+** Fixed typedef and define commands with storage classes
+Typedef and define now prohibit storage classes, e.g.:
+
+    typedef static int sint;
+
+is now correctly reported as an error.
+
+
+* Changes in Cdecl 4.0
+
+** Added C++17 support
+Specifically, inline variable declarations are now supported.
+
+** New typedef and define commands
+New typedef gibberish and define english commands have been added to allow new
+types to be defined that can then be used in subsequent declarations and
+explanations.
+
+** New C99 standard types
+The following C99 types are now supported via the new typedef command:
+int8_t, int16_t, int32_t, int64_t, int_fast8_t, int_fast16_t, int_fast32_t,
+int_fast64_t, int_least16_t, int_least32_t, int_least64_t, int_least8_t,
+intmax_t, intptr_t, ptrdiff_t, uint8_t, uint16_t, uint32_t, uint64_t,
+uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast64_t, uint_least8_t,
+uint_least16_t, uint_least32_t, uint_least64_t, uintmax_t, and uintptr_t.
+
+** New --no-typedefs/-t command-line options
+Either of these options suppresses the definition of the standard C99 types.
+
+** Reads configuration file
+Upon start-up and if it exists, reads ~/.cdeclrc (by default) for user-defined
+typedef or define commands.
+
+** New --config/-c command-line options
+These options specify an alternate configuration file to read upon start-up.
+As a result, the -c option in earlier versions of cdecl used to specify when to
+colorize output has been renamed to -k.
+
+** New --no-config/-C command-line options
+These options suppress the reading of a configuration file, even one explicitly
+specified via --config/-c.
+
+** New show command
+A new show command has been added to show the definition of either predefined
+or user-defined types.
+
+** Register warning
+The use of "register" now triggers a warning in C++11 and later.
+
+
+* Changes in Cdecl 3.6
+
+** First word of first argument
+The first word of the first non-option command-line argument is now also
+checked to see if it's a command thus allowing fully quoted strings:
+
+    $ cdecl 'explain int *const p'
+
+
+* Changes in Cdecl 3.5
+
+** Added ssize_t
+Similar to size_t, support for ssize_t has been added.
+
+
+* Changes in Cdecl 3.4.1
+
+** Fixed new-style casts C++ version
+New-style casts are now permitted as far back as C++98.
+
+
+* Changes in Cdecl 3.4
+
+** Static & type-qualified arrays
+Added support for C99 static and type-qualified array function arguments, e.g.:
+
+    void f( int a[static const 10] );
+
+** Variable length arrays
+Added support for C99 variable length array function arguments, e.g.:
+
+    void f( int a[*] );
+    void g( int a[const *] );
+
+** Help command-line argument
+Now prints the help message and exits if the first command-line argument is
+"help".
+
+** Fixed reference to array
+The generated gibberish for "reference to array" has been fixed.
+
+
+* Changes in Cdecl 3.3
+
+** Help command-line option
+Added the command-line options of -h or --help that prints the usage message.
+
+** Fixed const pointers to members
+Explaining const/volatile pointers to members now works.
+
+
+* Changes in Cdecl 3.2
+
+** C++ new-style casts
+Added support for C++ new-style casts.
+
+** Language-sensitive autocompletion
+Autocompletion is now language-sensitive in that it will not offer completions
+that are not valid in the current language.
+
+** Context-sensitive autocompletion
+Autocompletion is now slightly more context-sensitive in that it will offer
+only command keywords for the first word in the input.
+
+** Fixed command-line error printing
+Command-line input is now printed when there's an error.
+
+
+* Changes in Cdecl 3.1.5
+
+** Fixed color prompt caret position
+The position of the caret in error messages when using color prompts has been
+fixed.
+
+
+* Changes in Cdecl 3.1.4
+
+** Fixed cv-qualifier in help
+The <cv-qualifier> in the help text was missing '>'.
+
+
+* Changes in Cdecl 3.1.3
+
+** Fixed synonyms in explain
+Explanations no longer wrongly allow English synonyms.
+
+
+* Changes in Cdecl 3.1.2
+
+** Fixed declarations with storage-class
+Declarations like:
+
+    declare x as static pointer to function returning int
+    declare x as type pointer to function returning int
+
+are fixed.
+
+
+* Changes in Cdecl 3.1.1
+
+** Parallel builds
+Parallel builds are fixed.
+
+** Manual page caveats
+Added additional caveats: qualified C++ data members or member functions are
+not supported.
+
+
+* Changes in Cdecl 3.1
+
+** Ref-qualifiers
+Now supports C++11 function ref-qualifiers.
+
+** Installs c++decl
+A "make install" will now also create c++decl as a symbolic link to cdecl.
+
+
+* Changes in Cdecl 3.0.1
+
+** Renamed --disable-debug to --disable-cdecl-debug
+Renamed this configure option to avoid clash with conventional --disable-debug
+option.
+
+
+* Changes in Cdecl 3.0
+
+** GNU Autotools
+The GNU Autotools suite is now used to build.
+
+** GNU-style test suite and many more tests
+There are now over 500 unit tests that can be run via "make check".
+
+** More semantic checks
+Many more semantic checks have been added to disallow invalid declarations.
+
+** Long command-line options
+Long (GNU-style) command-line options, e.g., --language, are now accepted.
+
+** Multi-line input
+Long commands can now be given across multiple lines by escaping the newlines
+with a backslash.
+
+** More C and C++ versions
+Now distinguishes among K&R C, C89, C95, C99, C11, C++98, C++03, C++11, and
+C++14.
+
+** More types
+Now supports _Atomic, bool, char16_t, char32_t, complex, noreturn, restrict,
+thread_local, and wchar_t.
+
+** Inline functions
+Added inline function support.
+
+** Function arguments
+Added register and variadic function argument support (independently).
+
+** Typedef declarations
+Added typedef declarations (independently).
+
+** C++ member functions
+Added final, friend, const, override, volatile, virtual, and pure virtual C++
+member function declaration support.
+
+** C++11 features
+Added C++11 auto, constexpr, enum class, mutable, rvalue references, and the
+function trailing return-type syntax.
+
+** Optional returning
+In pseudo-English for functions, the "returning" clause is now optional and
+equivalent to returning void.
+
+** Number bases
+Binary, octal, and hexadecimal numbers can now be used for array sizes.
+
+** Better warning an error messages
+Warning and error messages are now better, complete with location information
+and color.
+
+** Comments
+C /*...*/ and C++ // comments are now ignored.
+
+** No cdecl reserved words in C declarations
+Reserved words that are part of cdecl's pseudo-English are no longer considered
+such when explaining C or C++ declarations.
+
+* Revamped manual page.
+The cdecl(1) manual page has been revamped.
+
+
+* Changes in Cdecl 2.5-blocks
+
+** Blocks syntax
+Added support for Apple's "blocks" syntax per N1370 "Apple’s Extensions to C"
+<http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1370.pdf>.
+
+
+* Changes in Cdecl 2.5
+
+** GNU readline
+Now using GNU readline (when available) for command-line editing.
+
+** Prompt/Noprompt commands
+New "prompt" and "noprompt" commands are available.
+
+
+* Changes by Tony Hansen
+
+** Improved grammar
+More parts can be missing during explanations.
+
+** Variadic arguments
+Functions can now accept a variadic argument.
+
+
+* Changes by Alexander Dupuy
+
+** Additional K&R C checks
+Now warns about use of signed or void in K&R C.
+
+** Better C++ reference support
+Better semantic checking on C++ references is now done.
+
+** Const/volatile
+Const and volatile function pointers are now supported.
+
+
+* Changes by Merlyn LeRoy
+
+** Extern, register, and static
+Added extern, register, and static support.
+
+** Alternate invocation
+Cdecl can now be invoked as cast, declare, or explain from the command-line.
+
+
+* Changes in Cdecl 2.0
+
+** C++
+C++ declarations are now supported.
+
+** Create program at runtime
+The "Create program" feature is now selectable at runtime.
+
+** File input
+Cdecl can now parse input from files in addition to standard input.
+
+** Initial help message
+When starting, cdecl now prints a help message.
+
+** Prompt
+Now displays a prompt when either standard input is connected to a TTY or when
+in interactive mode.
+
+** More command-line options
+Cdecl now has the additional command-line options of -a, -r, -p, -c, -d, -D,
+-V, -i, and -+.
+
+** Set options
+A new "set options" command is available.
+
+** Exit/Quit command
+New "exit" and "quit" commands are available.
+
+** Synonyms
+Now supports synonyms for some pseudo-English words.
+
+
+* Changes by David Wolverton
+
+** Typedef declarations
+Added typedef declarations.
+
+** Noalias removal
+Support for noalias has been removed.
+
+
+* Changes by <unknown author>
+
+** Hints
+For some errors, a hint about a possible fix is now printed.
+
+** Function arguments
+Now accepts function arguments.
+
+** Explain casts
+Added ability to explain casts.
+
+** Create program
+Added #ifdef to emit either a semicolon (for variables) or braces (for
+functions) afterwards.
+
+
+* Changes in Cdecl 1.0
+
+** Initial version
+
+-------------------------------------------------------------------------------
+The file is part of Cdecl.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

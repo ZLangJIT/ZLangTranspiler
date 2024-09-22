@@ -1,0 +1,5 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO <<END
+include "data/include_1.cdeclrc"
+show
+END

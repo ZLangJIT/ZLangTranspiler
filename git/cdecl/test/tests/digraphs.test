@@ -1,0 +1,30 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --digraphs <<END
+declare a as array 9 of int
+
+set c++
+declare f as non-returning function (int) returning void
+declare [] as operator (int) returning int
+explain <:<:noreturn:>:> void f(int)
+explain auto <:x, y:>
+struct S { typedef int I; }
+struct T <% typedef int I; %>
+show typedef
+
+set c
+explain int a<:9:>
+
+set c89
+explain int a<:9:>
+
+set nographs
+declare a as array 9 of int
+
+set di
+declare a as array 9 of int
+
+set nog
+declare a as array 9 of int
+
+set c89 digraphs
+END

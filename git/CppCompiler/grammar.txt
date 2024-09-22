@@ -1,0 +1,370 @@
+Tools
+____________________________________________
+
+Scanner Tool 		FLex
+Parser Tool		Generator	YACC/Bison
+____________________________________________
+
+Symbol Table Implementation
+____________________________________________
+
+Using a hash table implementation, with
+chaining to handle collisions.
+Chaining done using linked lists.
+Each entry into the hash table has token name,
+token type, token value ,current scope binding
+Scoping is done by following a name convention
+where, a block with scope_id A, has sub_blocks
+with scope_id A1.
+
+____________________________________________
+
+
+Grammar :
+				Language : C++
+Reference
+---------------------------------------------
+Symbol			Description
+---------------------------------------------
+p			Program
+ret_type 		Return type
+s			Statement (general)
+dec_stat		Declaration statement
+assign_exprn	Assignment expression
+unary_exprn	Unary expression
+cond			Condition
+exprn			Expression
+num			Number(value) (terminal)
+sel_stmt		Selection statement
+id			ID of the variable (terminal)
+class_id		ID of the class name (terminal)
+func_id		ID of the function name (terminal)
+log_exprn		Logical expression
+rel_exprn		Relational expression
+logop			Logical operator
+relop			Relational operator
+uop			Unary operator
+bitop			Bit operations
+LT			Less than (terminal)
+GT			Greater than (terminal)
+LTEQ			Less than or equal (terminal)
+GTEQ			Greater than or equal (terminal)
+NEQEQ			Not equal to (terminal)
+EQ			Equal to  (terminal)
+---------------------------------------------
+
+P 
+		: program
+  		;
+
+program	
+		: external_declaration
+		| program external_declaration
+		;
+
+external_declaration 
+		: header_stmt
+		| global_stmt
+		| main_fun
+		;
+					 
+header_stmt 
+		: '#' T_INCLUDE '<' T_IDH '>'
+		| '#' T_INCLUDE  T_IDH
+		;
+
+global_stmt 
+		: declaration_statement 
+		| fun_declr
+		| user_defined_ds
+		| statement
+		;
+			
+main_fun 
+		: T_TYPE T_MAIN '(' ')' compound_stmt
+	    ;
+		   
+			
+declaration_statement 
+		: T_TYPE list_identifier ';'
+		;
+		
+list_identifier 
+		: list_identifier ',' variable 
+		| list_identifier ',' init
+		| init 
+		| variable
+		;
+				
+variable 
+		: T_IDENTIFIER 
+		| T_IDENTIFIER array
+		 ;
+		 
+array 
+		: array '[' T_INTEGER_VAL ']'
+	  	| '[' T_INTEGER_VAL ']'
+	  	;
+	  
+init 
+		: var_init
+     	| array_init
+	 	;
+	 
+var_init 
+		: T_IDENTIFIER '=' expression
+		 ;
+		 
+array_init 
+		: T_IDENTIFIER array '=' '{' values '}'
+		;
+		   
+values 
+		: values ',' constant
+   	    | constant
+		;
+	   
+constant 
+		: T_INTEGER_VAL
+		| T_STRING_VAL
+		| T_CHAR_VAL
+		| T_FLOAT_VAL
+		;
+		 
+declarator 
+		: '(' ')'
+		| '(' params ')'
+		;
+
+fun_declr 
+		: T_TYPE T_IDENTIFIER declarator compound_stmt
+		;
+		 
+params_list 
+		: T_TYPE T_IDENTIFIER 
+		| params_list ',' T_TYPE T_IDENTIFIER
+		;
+		 
+params 
+		: params_list
+       	;
+		 
+compound_stmt 
+		: start_paren end_paren
+		| start_paren block_item_list end_paren 
+		;
+			  
+start_paren 
+		: '{'
+		;
+
+end_paren 
+		: '}' 
+		;	  
+block_item_list 
+		: block_item
+		| block_item_list block_item
+		;
+
+block_item 
+		: declaration_statement
+		| statement
+		;   
+		   
+user_defined_ds 
+		: class
+		| structure
+		;
+				
+class 
+		: T_CLASS T_IDENTIFIER class_body_stmt ';'
+		;
+
+structure 
+		: T_STRUCT T_IDENTIFIER struct_body_stmt ';'
+		;
+
+class_body_stmt  
+		: start_paren end_paren
+		| start_paren class_mems end_paren 
+		;
+				 
+struct_body_stmt  
+		: start_paren end_paren
+		| start_paren struct_mems end_paren 
+		;
+
+struct_mems 
+		: struct_mem
+		| struct_mems struct_mem
+		;
+
+class_mems 
+		: class_mem
+		| class_mems class_mem
+		;
+
+struct_mem 
+		: declaration_statement
+		| fun_declr
+		;
+
+class_mem	
+		:  T_TYPE class_var_declaration ';'
+		|  fun_declr
+		|  access_specifier ':'
+		;
+			
+class_var_declaration 
+		: T_IDENTIFIER
+		| class_var_declaration ',' T_IDENTIFIER 
+		;
+
+access_specifier 
+		: T_PRIVATE
+        | T_PUBLIC
+		| T_PROTECTED
+		;
+		     
+statement 
+		: expression_stmt
+		| compound_stmt
+  		| iterative_statement
+  		| selection_statement
+		| input_output_statements
+        | return_stmt
+  		;
+		  
+expression_stmt
+    	: ';' 
+    	| expression ';'
+    	;
+selection_statement 
+		: T_IF '(' expression ')' statement
+        | T_IF '(' expression ')' statement T_ELSE else_stmt statement
+        ;
+					
+iterative_statement 
+		: for_loop
+		| while_loop
+  		;
+
+for_loop 
+		: T_FOR '(' for_assgn_stmt ';' {} expression ';' unary_exprn ')' statement
+  	   	;
+
+for_assgn_stmt 
+		: T_TYPE for_decl_stmt
+		| assignment_expression
+		;
+
+for_decl_stmt 
+		: T_IDENTIFIER '=' expression 
+		| for_decl_stmt ',' T_IDENTIFIER '=' expression
+		;
+
+while_loop 
+		: T_WHILE '(' expression ')' statement
+  		;
+		   
+return_stmt 
+		: T_RETURN ';' 
+		| T_RETURN expression ';'
+		;
+			
+expression 
+		: assignment_expression
+		| simple_expression
+		;
+		   
+assignment_expression 
+		: T_IDENTIFIER '=' expression 							  
+		| unary_exprn
+		;
+					  
+unary_exprn 
+		: T_ADDADD T_IDENTIFIER
+		| T_MINMIN T_IDENTIFIER
+       	| postfix_expression
+      	| T_IDENTIFIER uop_shorthd expression
+		;
+			
+postfix_expression 
+		: T_IDENTIFIER T_ADDADD
+		| T_IDENTIFIER T_MINMIN
+		;
+
+uop_shorthd  
+		: T_ADDEQ
+        | T_MINEQ
+        | T_MULEQ
+        | T_DIVEQ
+		;
+			 
+simple_expression 
+		: additive_expression 
+		| additive_expression relop additive_expression
+		| additive_expression logop additive_expression
+		| additive_expression bitop additive_expression
+		;
+				  
+bitop 
+		: T_OR
+   	  	| T_AND
+	  	| T_XOR
+	  	| T_LRSHIFT
+	  	| T_LLSHIFT
+	  	;
+				  
+relop 
+		: '<'
+      	| '>'
+	  	| T_LTEQ
+	  	| T_GTEQ
+	  	| T_NEQEQ
+	  	| T_EQEQ
+	  	;
+
+logop 
+		: T_OROR
+	  	| T_ANDAND
+	  	;
+	  
+additive_expression 
+		: term 
+		| additive_expression '+' term 
+		| additive_expression '-' term
+		| '+' additive_expression %prec '*'
+		| '-' additive_expression %prec '*'
+		;
+
+term 
+		: factor
+	 	| term '*' factor	
+     	| term '/' factor
+  	 	;
+
+factor 
+		: '(' expression ')'
+	   	| T_IDENTIFIER
+	   	| call
+	   	| T_INTEGER_VAL
+	   	| T_FLOAT_VAL
+	   	| T_STRING_VAL
+	   	| T_CHAR_VAL
+	   	;
+
+call 
+		: T_IDENTIFIER '(' ')'
+	 	| T_IDENTIFIER '(' args ')'
+	 	;
+
+args 	: expression
+	 	| expression ',' args
+	 	;
+
+input_output_statements 
+		: T_COUT T_LLSHIFT expression ';'
+		| T_CIN T_LRSHIFT T_IDENTIFIER ';'
+		;
+

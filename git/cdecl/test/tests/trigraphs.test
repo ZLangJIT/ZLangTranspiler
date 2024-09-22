@@ -1,0 +1,58 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --trigraphs <<END
+struct S
+
+set c17
+declare a as array 9 of int
+explain int a??(9??)
+
+set c++
+declare f as non-returning function (int) returning void
+
+set c++11
+declare f as non-returning function (int) returning void
+declare ??'= as operator (int) returning reference to S
+declare ??' as operator (reference to constant S, int) returning S
+declare ??!??! as operator (reference to constant S, reference to constant S) returning bool
+declare ??! as operator (reference to constant S, reference to constant S) returning S
+declare ??!= as operator (int) returning reference to S
+declare ??- as operator returning S
+declare [] as operator (int) returning int
+
+set c++
+explain int a??(9??)
+
+set c++03
+struct S ??< typedef int I; ??>
+show typedef
+
+set c++11
+explain ??(??(noreturn??)??) void f(int)
+explain S& operator??'=(int)
+explain S operator??'(const S&, int)
+explain bool operator??!??!(const S&, const S&)
+explain S operator??!(const S&, const S&)
+explain S& operator??!=(int)
+explain S operator??-()
+explain auto ??(x, y??)
+
+set nographs
+
+set knr
+set trigraphs
+set
+declare a as array 9 of int
+set nographs
+
+set c23
+set trigraphs
+set
+declare a as array 9 of int
+set nographs
+
+set c++
+set trigraphs
+set
+declare a as array 9 of int
+set nographs
+END

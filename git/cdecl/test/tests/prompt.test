@@ -1,0 +1,7 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO <<END
+set noprompt
+set
+set prompt
+set
+END

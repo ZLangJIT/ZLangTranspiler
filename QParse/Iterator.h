@@ -61,7 +61,6 @@ namespace QParse {
         
         friend Rules::Input;
         
-        Info info;
         QParse_RULES____VECTOR <Info> infoStack;
         bool allocated = false;
 
@@ -70,12 +69,14 @@ namespace QParse {
         Iterator(QParse_RULES____STRING *allocated_input);
 
     public:
+        Info info;
         QParse_RULES____STRING *input;
         
         QParse_RULES____STRING name;
 
         bool enable_logging;
 
+        Iterator() = default;
         Iterator(QParse_RULES____STRING &input);
         Iterator(const char * input);
         ~Iterator();

@@ -1,0 +1,3 @@
+cdecl> explain relaxed int x
+               ^
+3,9: error: "relaxed int" requires "shared"

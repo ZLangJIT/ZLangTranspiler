@@ -1,0 +1,2 @@
+/root/ZLangTranspiler/cs/zlang/bin/Release/net8.0/linux-musl-arm64/publish/zlang
+/root/ZLangTranspiler/cs/zlang/bin/Release/net8.0/linux-musl-arm64/publish/zlang.pdb

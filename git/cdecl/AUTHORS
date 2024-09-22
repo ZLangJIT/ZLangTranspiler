@@ -1,0 +1,131 @@
+Graham Ross <tektronix!tekmdp!grahamr>, Context, Inc.
+	original author
+
+????
+	modified to provide hints for unsupported types
+	added argument lists for functions
+	added 'explain cast' grammar
+	added #ifdef for 'create program' feature
+
+David Wolverton <david_wolverton@att.com>
+	conversion to ANSI C
+	added typedef support
+	removed noalias
+
+Tony Hansen <tony@attmail.com>, <hansen@pegasus.att.com>
+	merged D. Wolverton's ANSI C version w/ ????'s version
+	added function prototypes
+	added C++ declarations
+	made type combination checking table driven
+	added checks for void variable combinations
+	made 'create program' feature a runtime option
+	added file parsing as well as just stdin
+	added help message at beginning
+	added prompts when on a TTY or in interactive mode
+	added getopt() usage
+	added -a, -r, -p, -c, -d, -D, -V, -i and -+ options
+	delinted
+	added #defines for those without getopt or void
+	added 'set options' command
+	added 'quit/exit' command
+	added synonyms
+
+Merlyn LeRoy <merlyn@rose3.rosemount.com>
+	added extern, register, static
+	added links to explain, cast, declare
+	separately developed ANSI C support
+
+Alexander Dupuy <dupuy@smarts.com>, <dupuy@cs.columbia.edu>
+	modified type crosscheck to warn about void/signed in ritchie, preansi
+	#undef yywrap so that flex can be used
+	better semantic checking on use of C++ references
+	support const/volatile function member pointers
+
+Tony Hansen <tony@attmail.com>, <hansen@pegasus.att.com>
+	merged versions from LeRoy
+	added tmpfile() support
+	allow more parts to be missing during explanations
+	fixed some memory leak problems pointed out by the "purify" program
+	add support for ...
+	now a command line argument may have more text than just the keyword
+
+Dave Conrad <conrad@detroit.freenet.org>
+	added GNU readline() support
+	added dotmpfile_from_string() to support readline()
+	outdented C help text to prevent line from wrapping
+	minor tweaking of makefile && mv makefile Makefile
+	took out interactive and nointeractive commands when
+		compiled with readline support
+	added prompt and noprompt commands, -q option
+
+Peter Ammon <cdecl@ridiculousfish.com>
+	added Apple's "blocks"
+
+Paul J. Lucas <paul@lucasmail.org>
+	converted to C11
+	converted to GNU Autotools build
+	added GNU-style test suite and many more tests
+	added more semantic checks
+	added long options
+	added multi-line input
+	now distinguishing among K&R C, C89, C95, C99, C11, C17, C23, C++98,
+		C++03, C++11, C++14, C++17, and C++20, C++23
+	now using a proper abstract syntax tree data structure
+	added bit-fields
+	added register and variadic function arguments
+	added C95 wchar_t
+	added C99 _Bool, _Complex, _Imaginary, restrict
+	added C99 static, type-qualified, and variable length array function
+		arguments
+	added C99 standard types, e.g., int8_t
+	added C11 _Atomic, char16_t, char32_t, _Noreturn, thread_local
+	added C11 standard types, e.g., atomic_int
+	added C23 alignas, auto, _BitInt(N), bool, char8_t, constexpr, digit
+		separators, fixed-type enums, [[reproducible]], thread_local,
+		and [[unsequenced]]
+	added C23 and C++11 later attribute specifiers
+	added inline functions and variables
+	added enum, define, struct, show, typedef, union, and using commands
+	added alternative tokens
+	added "east const" option
+	added GNU __auto_type and GNU's alternate spellings of __const, etc.
+	added many standard & POSIX types and all Win32 types
+	added C++ constructors, destructors, extern "C", namespaces, friend,
+		member-functions, mutable, new-style casts, overloaded
+		operators, scoped names, throw(), typename, user-defined
+		conversion operators, virtual
+	added C++11 auto, constexpr, enum class, final, fixed-type enums,
+		function trailing return-type syntax, inline namespaces,
+		lambdas, noexcept, override, ref-qualifiers, rvalue references,
+		thread_local, and user-defined literals
+	added C++20 consteval, constinit, export, operator<=>, and nested
+		inline namespaces
+	added C++23 explicit object parameters and static operator()
+	added Embedded C types _Accum, _Fract, _Sat, and typedefs
+	added Unified Parallel C qualifiers relaxed, shared, and strict
+	independently added typedef declarations
+	added command autocompletion
+	added --echo-commands and -O command-line options and echo-commands
+		set option
+	added "include" command
+	added abbreviated function template, constrained auto, and parameter
+		pack declarations
+	added structured binding declarations
+	added "using" declarations
+	made "returning" optional in all cases where it is actually optional
+	added binary, octal, and hexadecimal array sizes
+	added digraph & trigraph support
+	added C++ raw string support
+	added better warning and error messages
+	added checking for reserved identifiers
+	added "did you mean ...?" suggestions
+	added C preprocessor macro expansion
+	added Microsoft calling convention support
+	added partial typeof support
+	added west-pointer option
+	added optional code coverage
+	added optional Address Sanitizer, Memory Sanitizer, and Undefined
+		Bahavior Sanitizer builds
+	now ignoring C /*...*/ and C++ // comments in lexer
+	now treating cdecl keywords in declarations as ordinary names
+	revamped the manual page

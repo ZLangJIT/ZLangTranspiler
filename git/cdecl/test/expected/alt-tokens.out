@@ -1,0 +1,88 @@
+c++decl> set
+    alt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C++23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using
+    west-decl=bflo
+c++decl> 
+c++decl> struct S
+c++decl> 
+c++decl> declare b as block
+void (xor b)();
+c++decl> declare pb as pointer to block
+void (xor*pb)();
+c++decl> declare f as reference function
+void f() bitand;
+c++decl> declare f as rvalue reference function
+void f() and;
+c++decl> declare lambda capturing [reference by default]
+[bitand]
+c++decl> declare lambda capturing [reference to x]
+[bitand x]
+c++decl> declare ! as operator (r as reference to const S) returning bool
+bool operator not(const S bitand r);
+c++decl> declare != as operator (r as reference to const S, int) returning bool
+bool operator not_eq(const S bitand r, int);
+c++decl> declare & as operator (r as reference to const S, x as int) returning S
+S operator bitand(const S bitand r, int x);
+c++decl> declare && as operator (r as reference to const S) returning bool
+bool operator and(const S bitand r);
+c++decl> declare &= as non-member operator (r as reference to S, x as int) returning reference to S
+S bitand operator and_eq(S bitand r, int x);
+c++decl> declare D as destructor
+compl D();
+c++decl> declare ^= as operator (int) returning reference to S
+S bitand operator xor_eq(int);
+c++decl> declare bitor as operator (x as reference to constant S, y as reference to constant S) returning S
+S operator bitor(const S bitand x, const S bitand y);
+c++decl> declare rr as rvalue reference to int
+int and rr;
+c++decl> declare xor as operator (x as reference to constant S, n as int) returning S
+S operator xor(const S bitand x, int n);
+c++decl> declare | as operator (x as int) returning reference to S
+S bitand operator bitor(int x);
+c++decl> declare |= as operator (int) returning reference to S
+S bitand operator or_eq(int);
+c++decl> declare || as operator (r as reference to const S) returning bool
+bool operator or(const S bitand r);
+c++decl> declare ~ as operator returning S
+S operator compl();
+c++decl> 
+c++decl> set noalt-tokens
+c++decl> declare D as destructor
+~D();
+c++decl> 
+c++decl> set alt-tokens
+c++decl> declare D as destructor
+compl D();
+c++decl> set noalt-tokens
+c++decl> 
+c++decl> set c89
+cdecl> set alt-tokens
+           ^
+36,5: warning: alternative tokens not supported until C95
+cdecl> set c++
+c++decl> 
+c++decl> declare x, y as reference to structured binding
+auto bitand [x, y];
+c++decl> declare x, y as rvalue reference to structured binding
+auto and [x, y];
+c++decl> 
+c++decl> // Test that abbreviations work.
+c++decl> set noalt
+c++decl> declare D as destructor
+~D();
+c++decl> set alt
+c++decl> declare D as destructor
+compl D();

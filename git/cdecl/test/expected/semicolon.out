@@ -1,0 +1,69 @@
+c++decl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C++23
+  nopermissive-types
+    prompt
+  nosemicolon
+  notrailing-return
+    using
+    west-decl=bflo
+c++decl> 
+c++decl> typedef int Int
+c++decl> 
+c++decl> declare x as int
+int x
+c++decl> declare x, y as int
+int x, y
+c++decl> declare I, J as type int
+using I = int
+using J = int
+c++decl> declare ! as operator returning bool
+bool operator!()
+c++decl> declare user-defined conversion operator returning bool
+operator bool()
+c++decl> show as typedef
+typedef int Int
+c++decl> show as using
+using Int = int
+c++decl> 
+c++decl> set semicolon
+c++decl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C++23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using
+    west-decl=bflo
+c++decl> declare x as int
+int x;
+c++decl> declare x, y as int
+int x, y;
+c++decl> declare I, J as type int
+using I = int;
+using J = int;
+c++decl> declare ! as operator returning bool
+bool operator!();
+c++decl> declare user-defined conversion operator returning bool
+operator bool();
+c++decl> show as typedef
+typedef int Int;
+c++decl> show as using
+using Int = int;

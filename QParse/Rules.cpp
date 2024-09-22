@@ -459,41 +459,17 @@ std::optional<QParse::IteratorMatcher::MatchData> QParse::Rules::ZeroOrMore::mat
     return match;
 }
 
-QParse::Rules::MatchBUntilA::MatchBUntilA(Rule *A, Rule *B, Action action) : Rule(action), A(A), B(B) {}
+QParse::Rules::MatchBUntilA::MatchBUntilA(Rule *A, Rule *B, Action action) : Rule(action), A(new RuleHolder(A)), B(new RuleHolder(B)) {}
 
 std::optional<QParse::IteratorMatcher::MatchData> QParse::Rules::MatchBUntilA::match(Iterator &iterator, UndoRedo *undo, bool doAction, bool logErrors) {
-    // until A matches, match B
-    IteratorMatcher::MatchData match(iterator, false);
-    while (true) {
-        auto tmp_ = A.match(iterator, undo, doAction, logErrors);
-        if (!tmp_.has_value()) {
-          iterator.popInfo(match.matches);
-          return std::nullopt;
-        }
-        auto tmp = *tmp_;
-        if (!tmp) {
-            iterator.popInfo(tmp.matches);
-            tmp_ = B.match(iterator, undo, doAction, logErrors);
-            if (!tmp_.has_value()) {
-              iterator.popInfo(match.matches);
-              return std::nullopt;
-            }
-            tmp = *tmp_;
-            match.matches += tmp.matches;
-            if (!tmp) {
-                iterator.popInfo(match.matches);
-                match.matches = 0;
-                return match;
-            }
-            match.end = tmp.end;
-        } else {
-            match.matched = true;
-            match.end = tmp.end;
-            match.matches += tmp.matches;
-            if (doAction) action(Input(iterator, match, undo, match.matches));
-            return match;
-        }
-    }
+    return Rules::Sequence({
+      new Rules::OneOrMore(
+        new Rules::Sequence({
+          new Rules::NotAt(new RuleHolder(A)),
+          new RuleHolder(B)
+        }), action
+      ), new RuleHolder(B)
+    }).match(iterator, undo, doAction, logErrors);
 }
 
 QParse::Rules::Or::Or(std::initializer_list<Rule *> rules, Action action) : Rule(action) {
@@ -570,7 +546,7 @@ std::optional<QParse::IteratorMatcher::MatchData> QParse::Rules::Sequence::match
 QParse::Rules::Until::Until(Rule *rule, Action action) : RuleHolder(rule, action) {}
 
 std::optional<QParse::IteratorMatcher::MatchData> QParse::Rules::Until::match(Iterator &iterator, UndoRedo *undo, bool doAction, bool logErrors) {
-    return MatchBUntilA(new RuleHolder(rule), new AdvanceInputBy(1), action).match(iterator, undo, doAction, logErrors);
+    return MatchBUntilA(rule, new AdvanceInputBy(1), action).match(iterator, undo, doAction, logErrors);
     /*
     IteratorMatcher::MatchData match;
     match.begin = iterator.current();

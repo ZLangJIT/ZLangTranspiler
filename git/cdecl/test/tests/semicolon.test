@@ -1,0 +1,24 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --no-semicolon -xc++ <<END
+set
+
+typedef int Int
+
+declare x as int
+declare x, y as int
+declare I, J as type int
+declare ! as operator returning bool
+declare user-defined conversion operator returning bool
+show as typedef
+show as using
+
+set semicolon
+set
+declare x as int
+declare x, y as int
+declare I, J as type int
+declare ! as operator returning bool
+declare user-defined conversion operator returning bool
+show as typedef
+show as using
+END

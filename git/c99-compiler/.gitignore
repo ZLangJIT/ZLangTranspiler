@@ -1,0 +1,19 @@
+# executable target
+build
+
+# vscode files
+.vscode
+*~
+
+# JetBrains files
+.idea
+
+# CMake
+cmake-build-debug
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+*.cbp
+
+# Mac OS
+.DS_Store

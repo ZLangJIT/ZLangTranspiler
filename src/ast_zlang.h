@@ -71,6 +71,18 @@ struct ast_zlang {
             (new Tokens::DiagnosticToken(msg))->collapse(*x.token_list);
         };
     }
+    
+    auto whitespace() {
+      return new ZeroOrMore(new Or({
+        new Char(' '), new Char('\t'), new Sequence({new Optional(new Char('\r')), new Char('\n')})
+      })); 
+    }
+    
+    auto package() {
+      return new Sequence({
+        new String("package"),
+      });
+    }
 
     inline void parse(TokenStream & ts) {
         MicroCpu2 cpu;
@@ -78,11 +90,10 @@ struct ast_zlang {
         pushParseContext(&instruction_list);
         auto seq = Sequence({
             new Echo("parsing..."),
-            //new Range({'a', 'z', 'A', 'Z'}, [](auto&x){(new SpanToken())->collapse(*x.token_list);}),
             new Until_At(
                 new EndOfFile(),
                 new Or({
-                    new Range({'a', 'z', 'A', 'Z'}, [](auto&x){(new SpanToken())->collapse(*x.token_list);}),
+                    //new Range({'a', 'z', 'A', 'Z'}, [](auto&x){(new SpanToken())->collapse(*x.token_list);}),
                     new OneOrMore(comment()),
                     new Char('\n'), new Char(' '), new Char('\t'), new Char(';'),
                     

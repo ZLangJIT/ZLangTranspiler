@@ -1,0 +1,29 @@
+%!language     javascript;
+
+%whitespaces    ' \t';
+%lexeme         int;
+%default action	[* @@ = @1 *];
+
+%left           '+' '-';
+%left           '*' '/';
+
+calc$           : expr                 [* console.log("= %d", @expr);
+                                            @@ = @expr;
+                                       *]
+                ;
+
+expr            : expr:a '+' expr:b    [* @@ = @a + @b *]
+                | expr:a '-' expr:b    [* @@ = @a - @b *]
+                | expr:a '*' expr:b    [* @@ = @a * @b *]
+                | expr:a '/' expr:b    [* @@ = @a / @b *]
+                | '(' expr ')'         [* @@ = @expr *]
+                | int
+                ;
+
+int             : '0-9'                     [* @@ = @1.charCodeAt(0)
+                                                        - '0'.charCodeAt(0) *]
+                | int '0-9'                 [* @@ = @int * 10 +
+                                                        @2.charCodeAt(0)
+                                                            - '0'.charCodeAt(0)
+                                            *]
+                ;

@@ -1,0 +1,456 @@
+cdecl> 
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=s
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=s
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short int x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=i
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=i
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short int x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long int x;
+cdecl> declare x as long long
+long long int x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=iu
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=iu
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short int x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long int x;
+cdecl> declare x as long long
+long long int x;
+cdecl> declare x as unsigned short
+unsigned short int x;
+cdecl> declare x as unsigned
+unsigned int x;
+cdecl> declare x as unsigned long
+unsigned long int x;
+cdecl> declare x as unsigned long long
+unsigned long long int x;
+cdecl> 
+cdecl> set explicit-int=l
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=l
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long int x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=ll
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=ll
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long int x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=u
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=u
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short int x;
+cdecl> declare x as unsigned
+unsigned int x;
+cdecl> declare x as unsigned long
+unsigned long int x;
+cdecl> declare x as unsigned long long
+unsigned long long int x;
+cdecl> 
+cdecl> set explicit-int=us
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=us
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short int x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=ui
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=ui
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned int x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=ul
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=ul
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long int x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=ull
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=ull
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long int x;
+cdecl> 
+cdecl> set noexplicit-int
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as short
+short x;
+cdecl> declare x as int
+int x;
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned short
+unsigned short x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;
+cdecl> declare x as unsigned long long
+unsigned long long x;
+cdecl> 
+cdecl> set explicit-int=u,l
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+    explicit-int=lu
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as long
+long int x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned
+unsigned int x;
+cdecl> declare x as unsigned long
+unsigned long int x;
+cdecl> 
+cdecl> set noexplicit-int
+cdecl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su         (Not supported in C.)
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using                    (Not supported in C.)
+    west-decl=bflo
+cdecl> declare x as long
+long x;
+cdecl> declare x as long long
+long long x;
+cdecl> declare x as unsigned
+unsigned x;
+cdecl> declare x as unsigned long
+unsigned long x;

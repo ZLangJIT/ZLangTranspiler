@@ -1,0 +1,58 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --east-const <<END
+struct S
+
+declare x as const int
+declare x as const S
+declare x as const size_t
+declare x as const struct S
+declare p as const pointer to int
+declare p as pointer to const int
+declare p as pointer to const pointer to int
+declare p as const pointer to pointer to int
+declare p as const pointer to const pointer to int
+
+set noeast-const
+declare x as const int
+
+set east-const
+declare x as const int
+set noeast-const
+declare x as const int
+
+set cknr
+set east-const
+set c
+set noeast-const
+
+set ea
+declare x as const int
+set noea
+declare x as const int
+
+set east
+declare x as const int
+set noeast
+declare x as const int
+
+set eastconst
+declare x as const int
+set noeastconst
+declare x as const int
+
+set -e-a--st-
+declare x as const int
+set no-e-a--st-
+declare x as const int
+
+set east-const
+set c++
+declare x, y as reference to const structured binding
+declare x, y as reference to const static structured binding
+declare x, y as reference to static const structured binding
+declare x, y as const reference to structured binding
+declare x, y as const reference to static structured binding
+declare x, y as static reference to const structured binding
+declare x, y as const static reference to structured binding
+declare x, y as static const reference to structured binding
+END

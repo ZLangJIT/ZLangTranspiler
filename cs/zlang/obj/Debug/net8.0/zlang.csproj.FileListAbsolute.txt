@@ -1,0 +1,15 @@
+/root/ZLangTranspiler/cs/zlang/bin/Debug/net8.0/zlang
+/root/ZLangTranspiler/cs/zlang/bin/Debug/net8.0/zlang.deps.json
+/root/ZLangTranspiler/cs/zlang/bin/Debug/net8.0/zlang.runtimeconfig.json
+/root/ZLangTranspiler/cs/zlang/bin/Debug/net8.0/zlang.dll
+/root/ZLangTranspiler/cs/zlang/bin/Debug/net8.0/zlang.pdb
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.GeneratedMSBuildEditorConfig.editorconfig
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.AssemblyInfoInputs.cache
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.AssemblyInfo.cs
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.csproj.CoreCompileInputs.cache
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.sourcelink.json
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.dll
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/refint/zlang.dll
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.pdb
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/zlang.genruntimeconfig.cache
+/root/ZLangTranspiler/cs/zlang/obj/Debug/net8.0/ref/zlang.dll

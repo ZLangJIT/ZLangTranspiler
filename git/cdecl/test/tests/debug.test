@@ -1,0 +1,80 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --debug <<END
+set
+explain (int)x
+explain _BitInt(4) x
+explain alignas(8) int x
+explain alignas(long) int x
+explain enum E : int x
+explain enum E x
+explain int x
+explain int x[]
+explain int x[4]
+explain int x[N]
+explain size_t x
+explain struct S x
+explain unsigned x : 4
+explain void f()
+explain void f(int i, char const *fmt, ... )
+explain void f(int x[*])
+explain void f(int x[static 2])
+
+set k&rc
+explain int f(x)
+
+set c++
+explain alignas(S::N) int x
+explain C auto x
+class C
+explain auto [x, y]
+explain bool operator!() const
+explain int C::*p
+explain operator bool() const
+explain int operator ""_w(char const *arg)
+explain ~C()
+explain []
+explain [](char c)
+explain [x]
+explain [x](char c)
+explain [=]
+explain [=](char c)
+explain [&]
+explain [&](char c)
+explain [&x]
+explain [&x](char c)
+explain [this]
+explain [this](char c)
+explain [*this]
+explain [*this](char c)
+explain [[maybe_unused]] int x
+explain enum E x : 4
+
+declare f as non-member function
+declare f as const member function
+
+set nodebug
+set
+explain int x
+
+set debug
+set
+explain int x
+
+#define AT                        @
+#define EMPTY
+#define N1                        -1
+
+#define NAME2_HELPER(A,B)         A ## B
+#define NAME2(A,B)                NAME2_HELPER(A,B)
+expand NAME2(x, __LINE__)
+
+#define NO_PARAM()                42
+expand NO_PARAM()
+
+#define QUOTE(X)                  # X
+#define CHAR_LIT                  'x'
+#define STR_LIT                   "x"
+#define VA(...)                   X __VA_OPT__(,) __VA_ARGS__
+END
+
+# vim:set syntax=sh et sw=2 ts=2:

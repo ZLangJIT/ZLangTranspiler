@@ -352,8 +352,8 @@ namespace QParse {
         };
 
         struct MatchBUntilA : Rule {
-            RuleHolder A;
-            RuleHolder B;
+            RuleHolder * A;
+            RuleHolder * B;
 
             MatchBUntilA(Rule * A, Rule * B, Action action = NO_ACTION);
 

@@ -1,0 +1,9 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO --permissive-types <<END
+declare x as class
+declare p as pointer to class
+
+set c++
+declare p as pointer to member of class C typeof
+declare r as reference to typeof
+END

@@ -264,6 +264,6 @@ void QParse::Rules::Input::insertAndRescan(const QParse_RULES____STRING &string)
     }
 }
 
-QParse::Iterator &QParse::Rules::Input::getIterator() const {
+QParse::Iterator QParse::Rules::Input::getIterator() const {
     return iterator;
 }

@@ -1,0 +1,51 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO <<END
+explain (const int)x
+explain (int(*const(*const)[3])[5])x
+explain (int(*(*const)[3])[5])x
+explain (const int(*const)[9])x
+explain (int(*const)[9])x
+explain (int*(^*const)(void))x
+explain (int *const *const)x
+explain (int*(*const)(void))x
+explain (int *const)x
+explain (int **const)x
+explain (int *volatile const)x
+explain (int const)x
+explain (long long)x
+explain (int (*)[3][5])x
+explain (int (*const (*)[3])[5])x
+explain (int (*(*)[3])[5])x
+explain (int (*)[9])x
+explain (const int*)x
+explain (int *const*)x
+explain (int (*)())x
+explain (int (*)(char*,int))x
+explain (int (*)(int*))x
+explain (int* (*)(void))x
+explain (int*)x
+explain (int const*)x
+explain (int**)x
+explain (int *restrict)p
+explain (unsigned long long)x
+explain (int *const volatile)x
+explain (int *volatile)x
+explain (int)
+explain (int*)
+explain (int[2])
+explain (void*[])
+explain (char const *const[])
+
+set c++
+explain (int&)x
+explain (int C::*)p
+explain (int C::*)S::p
+explain (int S::C::*)p
+explain const_cast<int*>(S::x)
+explain const_cast<int*>(x)
+explain dynamic_cast<class S::C*>(T::x)
+explain dynamic_cast<class C*>(x)
+explain reinterpret_cast<void*>(x)
+explain static_cast<int>(S::x)
+explain static_cast<int>(x)
+END

@@ -1,0 +1,32 @@
+%!language      "C++";
+
+%whitespaces    ' \t';
+%lexeme         int;
+%default action	[* @@ = @1 *];
+
+%left           '+' '-';
+%left           '*' '/';
+
+%prologue		[*
+    #include <stdlib.h>
+    #include <stdio.h>
+    #include <string.h>
+    #include <locale.h>
+    #include <iostream>
+*];
+
+calc$           : expr                 [* std::cout << "= " <<
+                                            @expr << std::endl *]
+                ;
+
+expr            : expr:a '+' expr:b    [* @@ = @a + @b *]
+                | expr:a '-' expr:b    [* @@ = @a - @b *]
+                | expr:a '*' expr:b    [* @@ = @a * @b *]
+                | expr:a '/' expr:b    [* @@ = @a / @b *]
+                | '(' expr ')'         [* @@ = @expr *]
+                | int
+                ;
+
+int             : '0-9'                [* @@ = @1 - '0' *]
+                | int '0-9'            [* @@ = @int * 10 + @2 - '0' *]
+                ;

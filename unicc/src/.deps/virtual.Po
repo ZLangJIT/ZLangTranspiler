@@ -1,0 +1,39 @@
+src/virtual.o: src/virtual.c src/unicc.h lib/phorward.h \
+  /usr/include/fortify/stdlib.h /usr/include/stdlib.h \
+  /usr/include/features.h /usr/include/bits/alltypes.h \
+  /usr/include/alloca.h /usr/include/limits.h /usr/include/bits/limits.h \
+  /usr/include/fortify/fortify-headers.h /usr/include/fortify/stdio.h \
+  /usr/include/stdio.h /usr/include/stdarg.h \
+  /usr/include/fortify/string.h /usr/include/string.h \
+  /usr/include/fortify/strings.h /usr/include/strings.h \
+  /usr/include/ctype.h /usr/include/time.h /usr/include/fortify/wchar.h \
+  /usr/include/wchar.h /usr/include/wctype.h \
+  /usr/include/fortify/unistd.h /usr/include/unistd.h \
+  /usr/include/bits/posix.h src/xml.h src/proto.h
+src/unicc.h:
+lib/phorward.h:
+/usr/include/fortify/stdlib.h:
+/usr/include/stdlib.h:
+/usr/include/features.h:
+/usr/include/bits/alltypes.h:
+/usr/include/alloca.h:
+/usr/include/limits.h:
+/usr/include/bits/limits.h:
+/usr/include/fortify/fortify-headers.h:
+/usr/include/fortify/stdio.h:
+/usr/include/stdio.h:
+/usr/include/stdarg.h:
+/usr/include/fortify/string.h:
+/usr/include/string.h:
+/usr/include/fortify/strings.h:
+/usr/include/strings.h:
+/usr/include/ctype.h:
+/usr/include/time.h:
+/usr/include/fortify/wchar.h:
+/usr/include/wchar.h:
+/usr/include/wctype.h:
+/usr/include/fortify/unistd.h:
+/usr/include/unistd.h:
+/usr/include/bits/posix.h:
+src/xml.h:
+src/proto.h:

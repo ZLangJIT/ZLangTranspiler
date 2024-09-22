@@ -1,0 +1,5 @@
+EXPECTED_EXIT=0
+cdecl -bEL$LINENO <<END
+set
+set options
+END

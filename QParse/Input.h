@@ -8,15 +8,17 @@ namespace QParse {
     namespace Rules {
         class Input {
         public:
-            Iterator &iterator;
+            Iterator iterator;
             UndoRedo *undo = nullptr;
+            IteratorMatcher::MatchData match;
             
         private:
-            IteratorMatcher::MatchData & match;
             int pops;
             bool executed = false;
 
         public:
+            Input() = default;
+            
             Input(Iterator &iterator, IteratorMatcher::MatchData &match, UndoRedo *undo, int pops);
 
             Input copy(Iterator & copy);
@@ -71,7 +73,7 @@ namespace QParse {
 
             void insertAndRescan(const QParse_RULES____STRING & string);
 
-            Iterator &getIterator() const;
+            Iterator getIterator() const;
         };
     }
 }

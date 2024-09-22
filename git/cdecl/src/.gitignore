@@ -1,0 +1,16 @@
+/*.dSYM
+/*.gcda
+/*.gcno
+/*.output
+/*.tab.[ch]
+/*.vcg
+/*_test
+/c++decl
+/cast
+/cdecl
+/config.h
+/declare
+/explain
+/lexer.c
+/parser.[ch]
+/stamp-h1

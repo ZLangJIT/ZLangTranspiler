@@ -1,0 +1,85 @@
+cdecl> struct S
+cdecl> 
+cdecl> declare x as const int
+int const x;
+cdecl> declare x as const S
+S const x;
+cdecl> declare x as const size_t
+size_t const x;
+cdecl> declare x as const struct S
+struct S const x;
+cdecl> declare p as const pointer to int
+int *const p;
+cdecl> declare p as pointer to const int
+int const *p;
+cdecl> declare p as pointer to const pointer to int
+int *const *p;
+cdecl> declare p as const pointer to pointer to int
+int **const p;
+cdecl> declare p as const pointer to const pointer to int
+int *const *const p;
+cdecl> 
+cdecl> set noeast-const
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set east-const
+cdecl> declare x as const int
+int const x;
+cdecl> set noeast-const
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set cknr
+cdecl> set east-const
+           ^
+24,5: warning: "const" not supported until C89
+cdecl> set c
+cdecl> set noeast-const
+cdecl> 
+cdecl> set ea
+cdecl> declare x as const int
+int const x;
+cdecl> set noea
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set east
+cdecl> declare x as const int
+int const x;
+cdecl> set noeast
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set eastconst
+cdecl> declare x as const int
+int const x;
+cdecl> set noeastconst
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set -e-a--st-
+cdecl> declare x as const int
+int const x;
+cdecl> set no-e-a--st-
+cdecl> declare x as const int
+const int x;
+cdecl> 
+cdecl> set east-const
+cdecl> set c++
+c++decl> declare x, y as reference to const structured binding
+auto const &[x, y];
+c++decl> declare x, y as reference to const static structured binding
+static auto const &[x, y];
+c++decl> declare x, y as reference to static const structured binding
+static auto const &[x, y];
+c++decl> declare x, y as const reference to structured binding
+auto const &[x, y];
+c++decl> declare x, y as const reference to static structured binding
+static auto const &[x, y];
+c++decl> declare x, y as static reference to const structured binding
+static auto const &[x, y];
+c++decl> declare x, y as const static reference to structured binding
+static auto const &[x, y];
+c++decl> declare x, y as static const reference to structured binding
+static auto const &[x, y];

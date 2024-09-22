@@ -11,6 +11,7 @@ namespace QParse {
             int matches = 0;
             QParse_RULES____STRING::const_iterator begin;
             QParse_RULES____STRING::const_iterator end;
+            MatchData() = default;
             MatchData(const Iterator & it);
             MatchData(const Iterator & it, bool matched);
             operator bool() const noexcept;

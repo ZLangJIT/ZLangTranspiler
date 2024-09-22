@@ -1,0 +1,14 @@
+%whitespaces    ' \t';
+
+%left           '+' '-';
+%left           '*' '/';
+
+@int            '0-9'+           = int;
+
+expr$           : expr '+' expr  = add
+                | expr '-' expr  = sub
+                | expr '*' expr  = mul
+                | expr '/' expr  = div
+                | '(' expr ')'
+                | @int
+                ;

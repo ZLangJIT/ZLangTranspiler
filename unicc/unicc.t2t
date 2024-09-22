@@ -1,0 +1,138 @@
+UNICC
+Version 1.7
+Oct 2019
+%!postproc(md): '```(.?)' '```\1'
+%!postproc(md): '^	([^-$])' '\1'
+%!postproc(md): '^ \* ' '- '
+%!postproc(md): '^  \* ' '  - '
+%!postproc(man): '```.?' ''
+%!postproc(man): '\[!.*\)' ''
+
+= NAME =
+
+**unicc** - universal parser generator.
+
+= SYNOPSIS =
+
+unicc [OPTION]... FILE
+
+= ABOUT =
+
+UniCC is a LALR(1) parser generator.
+
+It compiles an augmented grammar definition into a program source code that parses the described grammar. Because UniCC is intended to be target-language independent, it can be configured via template definition files to emit parsers in almost any programming language.
+
+UniCC comes with out of the box support for the programming languages **C**, **C++**, **Python** (both 2.x and 3.x) and **JavaScript**. Parsers can also be generated into **JSON** and **XML**.
+
+The official user's manual can be obtained for free here: https://phorward.info/products/unicc/unicc.pdf
+
+= COMMAND-LINE OPTIONS =
+
+The UniCC command-line interface supports various, combinable options to
+invoke, modify and specialize the parser generation process, or to trigger
+further tasks.
+
+== -a, --all-warnings ==
+
+Runs UniCC to print all warnings that come up with the grammar. UniCC
+normally suppresses some warning messages that raise up during the parse
+table constructions according to their importance.
+
+== -b NAME, --basename NAME ==
+
+Defines the specified basename //NAME// to be used for the output
+file(s) instead of the one derived by the #prefix-directive or by the
+name of the input filename. This basename is used for all output files
+if the provided parser template causes the construction of multiple
+files.
+
+== -G, --grammar ==
+
+Dumps an overview of the finally constructed grammar to stderr, right
+before the parse-tables are generated.
+
+== -h, --help ==
+
+Prints a short overview about the command-line options and exists.
+
+== -l TARGET, --language TARGET ==
+
+Sets the target language via command-line. A "#!language" directive in the
+grammar definition will override this value.
+
+== -n, --no-opt ==
+
+Disables state optimization; By default, the resulting LALR(1) parse
+states are optimized during table construction by introducing a special
+SHIFT_REDUCE action which combines a shift and reduction. This method is
+possible when the last symbol of a production is shifted. Standard
+LALR(1) parsers only support SHIFT or REDUCE, not both operations at the
+same time. When this option is enabled, UniCC produces about 20-30% more
+LALR(1) states. It can be useful for debugging purposes.
+
+== -P, --production ==
+
+Dumps an overview about the finally produced productions and their
+semantic actions.
+
+== -s, --stats ==
+
+Prints a statistics message to stderr when parser generation has
+entirely been finished. This will automatically switched on when
+using the verbose option.
+
+== -S, --states ==
+
+Dumps the generated LALR(1) states that had been generated during the
+parse table generation process.
+
+== -t, --stdout ==
+
+Print all code generator output to stdout instead as files.
+
+== -T, --symbols ==
+
+Dumps an overview of all used symbols.
+
+== -v, --verbose ==
+
+Prints process messages about the specific tasks during parser generation
+process. Automatically switches on the stats option for statistics output.
+
+== -V, --version ==
+
+Prints copyright and version information and exits.
+
+== -w, --warnings ==
+
+Print relevant warnings.
+
+== -x, --xml ==
+
+Triggers UniCC to run the parser description file generator additionally
+to the program module generator. The parser description file generator
+outputs an XML-based parser representation of the generated parse tables,
+which can be used by third-party code generators or grammar analysis and
+debugging tools.
+
+== -X, --XML ==
+Triggers UniCC to only run the parser description file generator
+without running the program-module generator.
+
+Errors and warnings are printed to STDERR, any other kind of output to STDOUT.
+
+= AUTHOR =
+
+Written by Jan Max Meyer.
+
+= BUGS =
+
+Please report bugs into the issue tracker on GitHub:
+
+https://github.com/phorward/unicc/issues
+
+= COPYRIGHT =
+
+Copyright (C) 2006-2019 by Phorward Software Technologies, Jan Max Meyer.
+
+You may use, modify and distribute this software under the terms and conditions of the MIT license.

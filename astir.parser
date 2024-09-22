@@ -1,0 +1,338 @@
+%prefix "zlang_v1"
+%value "const char *"
+
+%source {
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <string>
+#include <fstream>
+#include <ostream>
+#include <streambuf>
+#include <vector>
+
+std::string input;
+const char * input_c;
+
+const char * c_compiler;
+const char * cxx_compiler;
+const char * packcc;
+
+std::ofstream output;
+
+bool read_file(const char * path) {
+  std::ifstream t(path, std::ios::binary);
+  input = std::move(std::string((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>()));
+  input_c = input.c_str();
+  return *input_c != '\0';
+}
+
+void write(const char * str) {
+  output << str;
+  output.flush();
+}
+
+struct CMD {
+    std::string name, full_name, type_string;
+    bool is_exe;
+    bool is_shared_library;
+    bool is_static_library;
+    bool is_c_object;
+    bool is_cxx_object;
+    bool is_packcc_object;
+    bool no_link;
+    std::vector<CMD> file_list;
+};
+
+std::vector<CMD> command_list;
+size_t current_command;
+
+void create_no_link() {
+    if (command_list.size() == 0) {
+      command_list.emplace_back(CMD());
+      command_list.back().name = "no_link";
+      command_list.back().full_name = "no_link";
+      command_list.back().no_link = true;
+      command_list.back().type_string = "no_link";
+    }
+    current_command = 0;
+}
+
+void create_exe(const std::string name) {
+    for (size_t i = 0; i < command_list.size(); i++) {
+      if (!command_list[i].no_link && name == command_list[i].name) {
+        printf("switching to executable: %s\n", name.c_str());
+        current_command = i;
+        return;
+      }
+    }
+    printf("creating executable: %s\n", name.c_str());
+    command_list.emplace_back(CMD());
+    current_command = command_list.size()-1;
+    command_list[current_command].name = name;
+    command_list[current_command].full_name = name + ".exe";
+    command_list[current_command].is_exe = true;
+    command_list[current_command].type_string = "executable";
+}
+
+void create_shared_library(const std::string name) {
+    for (size_t i = 0; i < command_list.size(); i++) {
+      if (!command_list[i].no_link && name == command_list[i].name) {
+        printf("switching to shared library: %s\n", name.c_str());
+        current_command = i;
+        return;
+      }
+    }
+    printf("creating shared library: %s\n", name.c_str());
+    command_list.emplace_back(CMD());
+    current_command = command_list.size()-1;
+    command_list[current_command].name = name;
+    command_list[current_command].full_name = name + ".so";
+    command_list[current_command].is_shared_library = true;
+    command_list[current_command].type_string = "shared_library";
+}
+
+void create_static_library(const std::string name) {
+    for (size_t i = 0; i < command_list.size(); i++) {
+      if (!command_list[i].no_link && name == command_list[i].name) {
+        printf("switching to static library: %s\n", name.c_str());
+        current_command = i;
+        return;
+      }
+    }
+    printf("creating static library: %s\n", name.c_str());
+    command_list.emplace_back(CMD());
+    current_command = command_list.size()-1;
+    command_list[current_command].name = name;
+    command_list[current_command].full_name = name + ".a";
+    command_list[current_command].is_static_library = true;
+    command_list[current_command].type_string = "static_library";
+}
+
+void create_source_file(const std::string name, bool is_c, bool is_cxx) {
+    for (size_t i = 0; i < command_list[current_command].file_list.size(); i++) {
+      if ((command_list[current_command].name + "(" + command_list[current_command].type_string + "):" + name) == command_list[current_command].file_list[i].name) {
+        printf("switching to %s file: %s(%s):%s\n", is_c ? "c" : is_cxx ? "c++" : "pack_cc", command_list[current_command].name.c_str(), command_list[current_command].type_string.c_str(), name.c_str());
+        if (output.is_open()) {
+          output.flush();
+          output.close();
+        }
+        output = std::ofstream(command_list[current_command].file_list[i].full_name.c_str(), std::ios::binary);
+        return;
+      }
+    }
+    if (command_list[current_command].no_link) {
+      printf("creating %s file: %s.%s\n", is_c ? "c" : is_cxx ? "c++" : "pack_cc", name.c_str(), is_c ? "c" : is_cxx ? "cxx" : "pcc");
+    } else {
+      printf("creating %s file: %s(%s):%s.%s\n", is_c ? "c" : is_cxx ? "c++" : "pack_cc", command_list[current_command].name.c_str(), command_list[current_command].type_string.c_str(), name.c_str(), is_c ? "c" : is_cxx ? "cxx" : "pcc");
+    }
+    command_list[current_command].file_list.emplace_back(CMD());
+    CMD & file = command_list[current_command].file_list.back();
+    file.name = command_list[current_command].name + "(" + command_list[current_command].type_string + "):" + name;
+    file.full_name = (command_list[current_command].no_link ? name : std::string("_gen_") + command_list[current_command].name + "__" + command_list[current_command].type_string + "__" + name) + "." + (is_c ? "c" : is_cxx ? "cxx" : "pcc");
+    file.is_c_object = is_c;
+    file.is_cxx_object = is_cxx;
+    file.is_packcc_object = !is_c && !is_cxx;
+    if (output.is_open()) {
+      output.flush();
+      output.close();
+    }
+    output = std::ofstream(file.full_name.c_str(), std::ios::binary);
+}
+
+void create_c_file(const std::string name) { create_source_file(name, true, false); }
+void create_cxx_file(const std::string name) { create_source_file(name, false, true); }
+void create_packcc_file(const std::string name) { create_source_file(name, false, false); }
+
+bool build_command(CMD & cmd) {
+  bool contains_cxx_files = false;
+  for (auto & file : cmd.file_list) {
+    if (file.is_c_object) {
+      printf("  building c object: %s.o\n", file.name.c_str());
+      std::string command = c_compiler;
+      command += " -c ";
+      command += file.full_name + " ";
+      command += "-o " + file.full_name + ".o";
+      system(command.c_str());
+    } else if (file.is_cxx_object) {
+      printf("  building c++ object: %s.o\n", file.name.c_str());
+      std::string command = cxx_compiler;
+      command += " -c ";
+      command += file.full_name + " ";
+      command += "-o " + file.full_name + ".o";
+      system(command.c_str());
+      contains_cxx_files = true;
+    } else if (file.is_packcc_object) {
+      printf("  generating c source from packcc file: %s.pcc\n", file.name.c_str());
+      std::string command = packcc;
+      command += " -o ";
+      command += file.full_name + " ";
+      command += file.full_name;
+      system(command.c_str());
+      printf("  building c object: %s.o\n", file.name.c_str());
+      command = std::move(std::string(c_compiler));
+      command += " -c ";
+      command += file.full_name + ".c ";
+      command += "-o " + file.full_name + ".o";
+      system(command.c_str());
+    } else {
+      printf("  error: file %s is not a source file\n", file.name.c_str());
+      exit(1);
+    }
+  }
+  return contains_cxx_files;
+}
+
+void link_command(CMD & cmd) {
+  bool contains_cxx_files = build_command(cmd);
+  if (cmd.is_static_library) {
+    printf("linking static library: %s\n", cmd.name.c_str());
+    for (auto & file : cmd.file_list) {
+    }
+  } else if (cmd.is_shared_library) {
+    printf("linking shared library: %s\n", cmd.name.c_str());
+    for (auto & file : cmd.file_list) {
+    }
+  } else {
+    printf("linking executable: %s\n", cmd.name.c_str());
+    std::string command = contains_cxx_files ? cxx_compiler : c_compiler;
+    command += " -o ";
+    command += cmd.full_name;
+    for (auto & file : cmd.file_list) {
+      command += " " + file.full_name + ".o";
+    }
+    system(command.c_str());
+  }
+}
+
+void finalize() {
+  if (output.is_open()) {
+    output.flush();
+    output.close();
+    output = std::ofstream();
+  }
+  
+  for (auto & cmd : command_list) {
+      if (cmd.is_c_object || cmd.is_cxx_object || cmd.is_packcc_object) {
+        printf("error: source file %s is not part of any build\n", cmd.name.c_str());
+        exit(1);
+      }
+  }
+
+  // build all static libraries
+  for (auto & cmd : command_list) {
+    if (cmd.is_static_library && cmd.file_list.size() != 0) {
+      printf("building static library: %s\n", cmd.name.c_str());
+      link_command(cmd);
+    }
+  }
+
+  // build all shared libraries
+  for (auto & cmd : command_list) {
+    if (cmd.is_shared_library && cmd.file_list.size() != 0) {
+      printf("building shared library: %s\n", cmd.name.c_str());
+      link_command(cmd);
+    }
+  }
+
+  // build all executables
+  for (auto & cmd : command_list) {
+    if (cmd.is_exe && cmd.file_list.size() != 0) {
+      printf("building executable: %s\n", cmd.name.c_str());
+      link_command(cmd);
+    }
+  }
+}
+
+int get_input() {
+    return *input_c == '\0' ? -1 : *input_c++;
+}
+
+#define PCC_GETCHAR(auxil) get_input()
+
+#if false
+  static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+  #define ARGS____ (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer
+  #define P____ fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", ARGS____)
+  #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) P____
+#endif
+}
+
+statement <- _ expression _ EOL*
+             / ( !EOL . )* EOL
+
+expression <- comment
+              / block_comment
+              / parser_block
+              / code_block
+              / directive
+
+directive <- "@"
+              / exe_directive
+              / static_library_directive
+              / shared_library_directive
+              / c_file_directive
+              / cxx_file_directive
+              / packcc_file_directive
+              / unknown_directive
+
+comment <- "//" (!(EOL) .)* EOL {}
+block_comment <- "/*" (!"*/" .)* "*/" {}
+no_link_directive <- "no" _ "link " _ EOL { create_no_link(); }
+exe_directive <- "exe " _ < (!(_ EOL) .)* > _ EOL { create_exe($1); }
+static_library_directive <- "a " _ < (!(_ EOL) .)* > _ EOL { create_static_library($1); }
+shared_library_directive <- "so " _ < (!(_ EOL) .)* > _ EOL { create_shared_library($1); }
+c_file_directive <- "c " _ < (!(_ EOL) .)* > _ EOL { create_c_file($1); }
+cxx_file_directive <- "cxx " _ < (!(_ EOL) .)* > _ EOL { create_cxx_file($1); }
+packcc_file_directive <- "packcc " _ < (!(_ EOL) .)* > _ EOL { create_packcc_file($1); }
+unknown_directive <- < (![ \t\n] .)+ > { printf("unknown directive: %s\n", $1); exit(1); }
+
+code_block <- code_start code_middle code_end
+
+cc <- "$C_COMPILER" { write("\""); write(c_compiler); write("\""); }
+cxx <- "$CXX_COMPILER" { write("\""); write(cxx_compiler); write("\""); }
+packcc <- "$PACKCC_COMPILER" { write("\""); write(packcc); write("\""); }
+
+code_start <- "@code" _ '{' _ EOL
+code_middle <- ((!(code_end)) (ctranslate))*
+
+ctranslate <- cc
+              / cxx
+              / packcc
+              / <.> { write($1); }
+
+code_end <- EOL '}' _ "@code" _ EOL
+
+parser_block <- pcode_start pcode_middle pcode_end
+
+pcode_start <- "@parser" _ '{' _ EOL
+pcode_middle <- (!pcode_end (ptranslate))*
+
+ptranslate <- cc
+              / cxx
+              / packcc
+              / <.> { write($1); }
+
+pcode_end <- EOL '}' _ "@parser" _ EOL
+
+_      <- [ \t]*
+EOL    <- '\n' / '\r\n' / '\r' / ';'
+
+%%
+
+int main(int argc, char **argv) {
+    c_compiler = argv[2];
+    cxx_compiler = argv[3];
+    packcc = argv[4];
+    printf("c compiler: %s\n", c_compiler);
+    printf("c++ compiler: %s\n", cxx_compiler);
+    printf("packcc: %s\n", packcc);
+    if (read_file(argv[1])) {
+      create_no_link();
+      zlang_v1_context_t *ctx = zlang_v1_create(NULL);
+      while (zlang_v1_parse(ctx, NULL));
+      zlang_v1_destroy(ctx);
+      finalize();
+    }
+    return 0;
+}

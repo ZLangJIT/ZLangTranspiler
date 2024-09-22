@@ -1,0 +1,112 @@
+cdecl> typedef int Int
+cdecl> 
+cdecl> cast b into block (x as int, y as int) returning double
+(double(^)(int, int))b
+cdecl> cast into array of constant pointer to constant character
+(const char*const[])
+cdecl> cast p into const pointer to array 3 of const pointer to array 5 of int
+(int(*const(*const)[3])[5])p
+cdecl> cast p into const pointer to array 3 of pointer to array 5 of int
+(int(*(*const)[3])[5])p
+cdecl> cast p into const pointer to array 9 of const int
+(const int(*const)[9])p
+cdecl> cast p into const pointer to array 9 of int
+(int(*const)[9])p
+cdecl> cast p into const pointer to block (void) returning pointer to int
+(int*(^*const)(void))p
+cdecl> cast p into const pointer to const pointer to int
+(int*const*const)p
+cdecl> cast p into const pointer to function (void) returning pointer to int
+(int*(*const)(void))p
+cdecl> cast p into const pointer to int
+(int*const)p
+cdecl> cast p into const pointer to pointer to int
+(int**const)p
+cdecl> cast p into const volatile pointer to int
+(int*const volatile)p
+cdecl> cast p into const volatile pointer to int
+(int*const volatile)p
+cdecl> cast p into pointer to array 3 of const pointer to array 5 of int
+(int(*const(*)[3])[5])p
+cdecl> cast p into pointer to array 3 of pointer to array 5 of int
+(int(*(*)[3])[5])p
+cdecl> cast p into pointer to array 9 of int
+(int(*)[9])p
+cdecl> cast p into pointer to block (void) returning pointer to int
+(int*(^*)(void))p
+cdecl> cast p into pointer to const int
+(const int*)p
+cdecl> cast p into pointer to const pointer to int
+(int*const*)p
+cdecl> cast p into pointer to function () returning int
+(int(*)())p
+cdecl> cast p into pointer to function (void) returning pointer to int
+(int*(*)(void))p
+cdecl> cast p into pointer to function (x as int, y as int) returning int
+(int(*)(int, int))p
+cdecl> cast p into pointer to function returning int
+(int(*)())p
+cdecl> cast p into pointer to int
+(int*)p
+cdecl> cast p into pointer to pointer to int
+(int**)p
+cdecl> cast p into volatile pointer to int
+(int*volatile)p
+cdecl> cast x into const int
+(const int)x
+cdecl> cast x into constant int
+(const int)x
+cdecl> cast x into long long
+(long long)x
+cdecl> cast x into signed char
+(signed char)x
+cdecl> cast x into signed int
+(int)x
+cdecl> cast x into signed long long
+(long long)x
+cdecl> cast x into unsigned
+(unsigned)x
+cdecl> cast x into unsigned char
+(unsigned char)x
+cdecl> cast x into unsigned int
+(unsigned)x
+cdecl> cast x into unsigned long long
+(unsigned long long)x
+cdecl> cast x into Int
+(Int)x
+cdecl> 
+cdecl> set knr
+cdecl> cast p into pointer to function (x) returning int
+(int(*)())p
+cdecl> 
+cdecl> set c17
+cdecl> cast p into pointer to function (x) returning int
+                                        ^
+47,34: warning: missing type specifier; "int" assumed
+(int(*)(int))p
+cdecl> 
+cdecl> set c++
+c++decl> cast p into pointer to member of class C int
+(int C::*)p
+c++decl> cast S::x into int
+(int)S::x
+c++decl> const cast S::x into pointer to int
+const_cast<int*>(S::x)
+c++decl> const cast x into pointer to int
+const_cast<int*>(x)
+c++decl> dynamic cast S::x into pointer to class C
+dynamic_cast<C*>(S::x)
+c++decl> dynamic cast x into pointer to class C
+dynamic_cast<C*>(x)
+c++decl> dynamic cast x into pointer to struct S
+dynamic_cast<struct S*>(x)
+c++decl> reinterpret cast S::x into pointer to void
+reinterpret_cast<void*>(S::x)
+c++decl> reinterpret cast x into pointer to void
+reinterpret_cast<void*>(x)
+c++decl> static cast S::x into int
+static_cast<int>(S::x)
+c++decl> static cast x into int
+static_cast<int>(x)
+c++decl> static cast x into Int
+static_cast<Int>(x)

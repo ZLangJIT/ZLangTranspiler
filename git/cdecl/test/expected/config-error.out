@@ -1,0 +1,5 @@
+/* begin "data/error.cdeclrc" */
+cdecl> typedef int
+                  ^
+data/error.cdeclrc:1,12: syntax error: unexpected end of command
+/* end "data/error.cdeclrc" */

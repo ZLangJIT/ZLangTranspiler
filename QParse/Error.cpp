@@ -47,6 +47,17 @@ void QParse::Rules::printError(const QParse_RULES____STRING & message, Iterator 
     QParse_RULES____COUT_NO_SPACE << rang::fg::reset;
 }
 
+void QParse::Rules::printNote(const QParse_RULES____STRING & message, Iterator & iterator, UndoRedo & undo)
+{
+    QParse_RULES____COUT_NO_SPACE << rang::fg::blue << "NOTE: " << rang::fg::reset << message QParse_RULES____COUT_ENDL;
+    undo.print_error(iterator);
+    undo.print([&](auto description) {
+        QParse_RULES____COUT_NO_SPACE << description QParse_RULES____COUT_ENDL;
+        undo.undo();
+        undo.print_error(iterator);
+    });
+    QParse_RULES____COUT_NO_SPACE << rang::fg::reset;
+}
 
 QParse::Rules::Error::Error(const QParse_RULES____STRING &message, Action action) : Rule(action), message(message) {}
 

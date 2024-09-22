@@ -1,0 +1,18 @@
+c++decl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C++23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using
+    west-decl=bflo
+declare x as integer

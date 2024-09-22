@@ -1,0 +1,25 @@
+c++decl> set using
+c++decl> set
+  noalt-tokens
+  nodebug
+  noeast-const
+    echo-commands
+    english-types
+    explicit-ecsu=su
+  noexplicit-int
+  nographs
+  noinfer-command
+    language=C++23
+  nopermissive-types
+    prompt
+    semicolon
+  notrailing-return
+    using
+    west-decl=bflo
+c++decl> declare Int as type int
+using Int = int;
+c++decl> set nousing
+c++decl> set c++03
+c++decl> set using
+             ^
+8,5: warning: "using" not supported until C++11

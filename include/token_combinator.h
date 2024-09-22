@@ -564,20 +564,16 @@ struct Optional : CustomPass {
                 }
             });
             popMatchData(list_1, [=](MatchData*current, MatchData*old) {
-                if (old->matched) {
-                    current->matched = true;
-                    if (old->token_list->token_list.size() != 0) {
-                        current->token_list->token_list.insert(current->token_list->token_list.end(), old->token_list->token_list.begin(), old->token_list->token_list.end());
-                    }
-                }
-            });
-        });
-        popMatchData(list, [=](MatchData*current, MatchData*old) {
-            if (old->matched) {
                 current->matched = true;
                 if (old->token_list->token_list.size() != 0) {
                     current->token_list->token_list.insert(current->token_list->token_list.end(), old->token_list->token_list.begin(), old->token_list->token_list.end());
                 }
+            });
+        });
+        popMatchData(list, [=](MatchData*current, MatchData*old) {
+            current->matched = true;
+            if (old->token_list->token_list.size() != 0) {
+                current->token_list->token_list.insert(current->token_list->token_list.end(), old->token_list->token_list.begin(), old->token_list->token_list.end());
             }
         });
     }
@@ -676,6 +672,7 @@ struct Until_At : CustomPass {
                     if(x.matched) {
                         load(*last);
                         delete last;
+                        x.token_list->token_list = std::move(last_tk->token_list);
                         if (x.execute_actions) default_action(x);
                         return true;
                     }
@@ -696,6 +693,8 @@ struct Until_At : CustomPass {
                 //
                 list_1->insert_absolute_jump_after(1);
             } else {
+                // we have no opt pass
+              
                 // instruction 0 is a context push
                 //
                 list_1->insert_absolute_conditional_jump_after(1, [=](void*user_data){
@@ -711,13 +710,13 @@ struct Until_At : CustomPass {
                 });
             }
             popMatchData(list_1, [=](MatchData*current, MatchData*old) {
+                delete last_tk;
                 if (old->matched) {
                     current->matched = true;
-                    if (last_tk->token_list.size() != 0) {
-                        current->token_list->token_list.insert(current->token_list->token_list.end(), last_tk->token_list.begin(), last_tk->token_list.end());
+                    if (old->token_list->token_list.size() != 0) {
+                        current->token_list->token_list.insert(current->token_list->token_list.end(), old->token_list->token_list.begin(), old->token_list->token_list.end());
                     }
                 }
-                delete last_tk;
             });
         });
         popMatchData(list, [=](MatchData*current, MatchData*old) {
@@ -768,7 +767,7 @@ struct OneOrMore : CustomPass {
                     *has_one_match = true;
                     return true;
                 } else {
-                    if (x.execute_actions) default_action(x);
+                    if (x.execute_actions && *has_one_match) default_action(x);
                     return false;
                 }
             });

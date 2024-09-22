@@ -137,7 +137,13 @@ namespace QParse {
 
         void print(const QParse_RULES____STRING & message, Iterator & iterator, UndoRedo & undo);
         
+        inline void print(const QParse_RULES____STRING & message, Input & input) {
+          print(message, input.iterator, *input.undo);
+        }
+        
         void printError(const QParse_RULES____STRING & message, Iterator & iterator, UndoRedo & undo);
+        
+        void printNote(const QParse_RULES____STRING & message, Iterator & iterator, UndoRedo & undo);
 
         struct Error : Rule {
             QParse_RULES____STRING message;

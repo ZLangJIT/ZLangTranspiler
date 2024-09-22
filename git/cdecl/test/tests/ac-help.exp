@@ -1,0 +1,64 @@
+#! /usr/bin/env expect
+
+#exp_internal 1
+spawn cdecl --color=never
+
+expect "cdecl> "
+# help
+send "h\t\r"
+expect default { exit 1 } -ex {command:}
+
+expect "cdecl> "
+# help commands
+send "h\tcom\t\r"
+expect default { exit 1 } -ex {command:}
+
+expect "cdecl> "
+# help english
+send "h\teng\t\r"
+expect default { exit 1 } -ex {english:}
+
+expect "cdecl> "
+# help help
+send "h\th\t\r"
+expect default { exit 1 } -ex {help}
+
+expect "cdecl> "
+# help options
+send "h\to\t\r"
+expect default { exit 1 } -ex {option:}
+
+expect "cdecl> "
+# ? commands
+send "? com\t\r"
+expect default { exit 1 } -ex {command:}
+
+expect "cdecl> "
+# ? english
+send "? eng\t\r"
+expect default { exit 1 } -ex {english:}
+
+expect "cdecl> "
+# ? options
+send "? o\t\r"
+expect default { exit 1 } -ex {option:}
+
+expect "cdecl> "
+send "set c++\r"
+
+expect "c++decl> "
+# help class
+send "h\tcl\t\r"
+expect default { exit 1 } -ex {class}
+
+expect "c++decl> "
+# help quit
+send "h\tq\t\r"
+expect default { exit 1 } -ex {quit}
+
+expect "c++decl> "
+# help reinterpret
+send "h\tr\t\r"
+expect default { exit 1 } -ex {reinterpret cast}
+
+# vim:set et sw=2 ts=2:
