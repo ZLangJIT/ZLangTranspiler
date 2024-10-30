@@ -103,16 +103,16 @@ endif
 cmake_run_flags += $(C_COMPILER_flags) $(CXX_COMPILER_flags) $(CMAKE_FLAGS)
 
 build_debug: debug_directories
-	cd ${debug_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0" .. ; make && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${debug_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0" .. ; make $(MAKE_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 build_debug_ninja: debug_ninja_directories
-	cd ${debug_ninja_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0" .. ; ninja && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${debug_ninja_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0" .. ; ninja $(NINJA_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 build_release: release_directories
-	cd ${release_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Release $(cmake_run_flags) -DCMAKE_C_FLAGS_RELEASE="$(CFLAGS) -g0 -O3" -DCMAKE_CXX_FLAGS_RELEASE="$(CXXFLAGS) -g0 -O3" .. ; make && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(release_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${release_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Release $(cmake_run_flags) -DCMAKE_C_FLAGS_RELEASE="$(CFLAGS) -g0 -O3" -DCMAKE_CXX_FLAGS_RELEASE="$(CXXFLAGS) -g0 -O3" .. ; make $(MAKE_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(release_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 build_release_ninja: release_ninja_directories
-	cd ${release_ninja_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $(cmake_run_flags) -DCMAKE_C_FLAGS_RELEASE="$(CFLAGS) -g0 -O3" -DCMAKE_CXX_FLAGS_RELEASE="$(CXXFLAGS) -g0 -O3" .. ; ninja && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(release_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${release_ninja_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $(cmake_run_flags) -DCMAKE_C_FLAGS_RELEASE="$(CFLAGS) -g0 -O3" -DCMAKE_CXX_FLAGS_RELEASE="$(CXXFLAGS) -g0 -O3" .. ; ninja $(NINJA_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(release_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 
 
@@ -120,10 +120,10 @@ asan_build_flags = -fno-omit-frame-pointer -fsanitize=address -fsanitize-address
 asan_run_flags = LSAN_OPTIONS=verbosity=1:log_threads=1 ASAN_OPTIONS=verbosity=1:detect_leaks=1:detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
 
 build_debug_asan: debug_asan_directories
-	cd ${debug_asan_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0 ${asan_build_flags}" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0 ${asan_build_flags}" .. ; make && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_asan_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${debug_asan_build_dir} ; mkdir EXECUTABLES; cmake -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0 ${asan_build_flags}" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0 ${asan_build_flags}" .. ; make $(MAKE_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_asan_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 build_debug_ninja_asan: debug_ninja_asan_directories
-	cd ${debug_ninja_asan_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0 ${asan_build_flags}" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0 ${asan_build_flags}" .. ; ninja && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_asan_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
+	cd ${debug_ninja_asan_build_dir} ; mkdir EXECUTABLES; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $(cmake_run_flags) -DCMAKE_C_FLAGS_DEBUG="$(CFLAGS) -g3 -O0 ${asan_build_flags}" -DCMAKE_CXX_FLAGS_DEBUG="$(CXXFLAGS) -g3 -O0 ${asan_build_flags}" .. ; ninja $(NINJA_FLAGS) && if test -e EXECUTABLES ; then cd EXECUTABLES; for file in * ; do mv -v $$file ../../$(debug_asan_executable_dir)/$$FILE ; done ; cd ..; rmdir EXECUTABLES; fi
 
 .PHONY: all
 
@@ -234,10 +234,10 @@ rebuild_test_valgrind: rebuild_test_debug_valgrind rebuild_test_release_valgrind
 rebuild_test_ninja_valgrind: rebuild_test_debug_ninja_valgrind rebuild_test_release_ninja_valgrind
 
 test_debug_valgrind: build_debug
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; valgrind ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; valgrind $(VALGRIND_FLAGS) ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_debug_ninja_valgrind: build_debug_ninja
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; valgrind ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; valgrind $(VALGRIND_FLAGS) ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_debug_valgrind:
 	make clean_debug
@@ -248,10 +248,10 @@ rebuild_test_debug_ninja_valgrind:
 	make test_debug_ninja_valgrind
 
 test_release_valgrind: build_release
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; valgrind ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; valgrind $(VALGRIND_FLAGS) ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_release_ninja_valgrind: build_release_ninja
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; valgrind ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; valgrind $(VALGRIND_FLAGS) ${valgrind_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_release_valgrind:
 	make clean_release
@@ -269,10 +269,10 @@ rebuild_test_gdb: rebuild_test_debug_gdb rebuild_test_debug_asan_gdb rebuild_tes
 rebuild_test_ninja_gdb: rebuild_test_debug_ninja_gdb rebuild_test_debug_ninja_asan_gdb rebuild_test_ninja_release_gdb
 
 test_debug_gdb: build_debug
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; gdb ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; gdb $(GDB_FLAGS) ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_debug_ninja_gdb: build_debug_ninja
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; gdb ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; gdb $(GDB_FLAGS) ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_debug_gdb:
 	make clean_debug
@@ -297,10 +297,10 @@ rebuild_test_debug_ninja_asan_gdb:
 	make test_debug_ninja_asan_gdb
 
 test_release_gdb: build_release
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; gdb ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; gdb $(GDB_FLAGS) ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_release_ninja_gdb: build_release_ninja
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; gdb ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; gdb $(GDB_FLAGS) ${gdb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_release_gdb:
 	make clean_release
@@ -318,10 +318,10 @@ rebuild_test_lldb: rebuild_test_debug_lldb rebuild_test_debug_asan_lldb rebuild_
 rebuild_test_ninja_lldb: rebuild_test_debug_ninja_lldb rebuild_test_debug_ninja_asan_lldb rebuild_test_ninja_release_lldb
 
 test_debug_lldb: build_debug
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; lldb ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; lldb $(LLDB_FLAGS) ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_debug_ninja_lldb: build_debug_ninja
-	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; lldb ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(debug_executable_dir)_TMP; for file in $(debug_executable_dir)/* ; do echo "testing $$file..." ; lldb $(LLDB_FLAGS) ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_debug_lldb:
 	make clean_debug
@@ -346,10 +346,10 @@ rebuild_test_debug_ninja_asan_lldb:
 	make test_debug_ninja_asan_lldb
 
 test_release_lldb: build_release
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; lldb ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; lldb $(LLDB_FLAGS) ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 test_release_ninja_lldb: build_release_ninja
-	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; lldb ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
+	export TEST_TMPDIR=$(release_executable_dir)_TMP; for file in $(release_executable_dir)/* ; do echo "testing $$file..." ; lldb $(LLDB_FLAGS) ${lldb_flags} $$file ; echo "$$file returned with code $$?" ; done
 
 rebuild_test_release_lldb:
 	make clean_release
