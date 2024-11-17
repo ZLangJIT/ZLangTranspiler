@@ -186,6 +186,14 @@ int main(int argc, char **argv) {
   }
   if (true) {
     tcc_jit o;
+    o.add_obj()->println("void print(const char*); void bar84(float y) { print(\"::bar84\"); } void bar88(int x) { print(\"::bar88\"); } void bar88() { print(\"::bar88 void\"); }");
+    o.add_obj()->println("void print(const char*); void bar84(float y); void bar88(int x); void bar88(); void baz() { bar84(4.7f); bar88(5); bar88(); } int main() { baz(); return 0; }");
+    o.compile(false); // no default defines
+    o.bind(print, "print");
+    o();
+  }
+  if (false) {
+    tcc_jit o;
     o.add_obj()->println("void print(const char*); class foo1 { void bar84(float y) { print(\"foo1::bar84\"); } void bar88(int x) { print(\"foo1::bar88\"); } void bar88() { print(\"foo1::bar88 void\"); } }; ");
     o.add_obj()->println("void print(const char*); class foo1 { void bar84(float y); void bar88(int x); void bar88(); }; void baz() { struct foo1 f; f.bar84(4.7f); f.bar88(5); f.bar88(); } int main() { baz(); return 0; }");
     o.compile(false); // no default defines

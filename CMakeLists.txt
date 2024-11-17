@@ -253,9 +253,10 @@ target_compile_definitions(libtcc PUBLIC MEM_DEBUG=1 TAL_INFO=1 ASM_DEBUG=1 PARS
 add_executable(tcc libtcc-cmake/src/tcc.c)
 target_link_libraries(tcc libtcc)
 
+if (false)
 add_subdirectory(libriscv/emulator)
-
 target_compile_definitions(riscv PRIVATE _GNU_SOURCE=1 _LARGEFILE64_SOURCE=1)
+endif()
 
 add_subdirectory(mmaptwo-plus)
 
@@ -266,7 +267,7 @@ add_executable(lexer
 )
 target_include_directories(lexer PRIVATE include)
 target_include_directories(lexer PRIVATE mmaptwo-plus)
-target_link_libraries(lexer libtcc mmaptwo_plus riscv)
+target_link_libraries(lexer libtcc mmaptwo_plus)
 
 endif()
 
